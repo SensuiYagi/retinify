@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['tensorrt_0',['3.1 with TensorRT',['../installation.html#autotoc_md4',1,'']]],
-  ['the_20retinify_20repository_1',['2. Clone the retinify repository.',['../installation.html#autotoc_md2',1,'']]],
-  ['to_20retinify_2',['Welcome to retinify',['../index.html#welcome',1,'']]],
-  ['tutorials_3',['Tutorials',['../tutorials.html',1,'']]],
-  ['tutorials_2emd_4',['tutorials.md',['../tutorials_8md.html',1,'']]]
+  ['undistortpoint_0',['UndistortPoint',['../namespaceretinify.html#a8876f0e2847382702e20d5af46ef6fe9',1,'retinify']]],
+  ['uninstall_20retinify_1',['Uninstall retinify',['../installation.html#autotoc_md7',1,'']]],
+  ['user_2',['USER',['../namespaceretinify.html#a760ed0e98c342b4af3006ca06c81116da2e40ad879e955201df4dedbf8d479a12',1,'retinify']]]
 ];
