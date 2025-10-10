@@ -399,10 +399,6 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// Rectification rotation
 /// @param projectionMatrix
 /// Projection matrix
-/// @param imageWidth
-/// Image width in pixels.
-/// @param imageHeight
-/// Image height in pixels.
 /// @param mapx
 /// Output map for x-coordinates
 /// @param mapxStride
@@ -411,12 +407,16 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// Output map for y-coordinates
 /// @param mapyStride
 /// Stride (in bytes) of a row in mapy
+/// @param imageWidth
+/// Image width in pixels.
+/// @param imageHeight
+/// Image height in pixels.
 /// @return
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                                           const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
-                                          std::uint32_t imageWidth, std::uint32_t imageHeight,        //
                                           float *mapx, std::size_t mapxStride,                        //
-                                          float *mapy, std::size_t mapyStride) noexcept -> void;
+                                          float *mapy, std::size_t mapyStride,                        //
+                                          std::uint32_t imageWidth, std::uint32_t imageHeight) noexcept -> void;
 
 /// @brief
 /// Initialize identity maps for undistortion/rectification.

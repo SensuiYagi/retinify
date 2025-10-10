@@ -646,9 +646,9 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
 
 auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                              const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
-                             std::uint32_t imageWidth, std::uint32_t imageHeight,        //
                              float *mapX, std::size_t mapXStride,                        //
-                             float *mapY, std::size_t mapYStride) noexcept -> void
+                             float *mapY, std::size_t mapYStride,                        //
+                             std::uint32_t imageWidth, std::uint32_t imageHeight) noexcept -> void
 {
     if (mapX == nullptr || mapY == nullptr)
     {

@@ -454,9 +454,10 @@ TEST(GeometryTest, InitUndistortRectifyMapIdentity)
     const Status allocStatusY = mapY.Allocate(kHeight, kWidth, 1, sizeof(float), MatLocation::HOST);
     ASSERT_TRUE(allocStatusY.IsOK());
 
-    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, kWidth, kHeight, //
-                            static_cast<float *>(mapX.Data()), mapX.Stride(),                           //
-                            static_cast<float *>(mapY.Data()), mapY.Stride());
+    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, //
+                            static_cast<float *>(mapX.Data()), mapX.Stride(),          //
+                            static_cast<float *>(mapY.Data()), mapY.Stride(),          //
+                            kWidth, kHeight);
 
     const void *mapXVoid = mapX.Data();
     const void *mapYVoid = mapY.Data();
@@ -497,9 +498,10 @@ TEST(GeometryTest, InitUndistortRectifyMapRotatedCamera)
     const Status allocStatusY = mapY.Allocate(kHeight, kWidth, 1, sizeof(float), MatLocation::HOST);
     ASSERT_TRUE(allocStatusY.IsOK());
 
-    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, kWidth, kHeight, //
-                            static_cast<float *>(mapX.Data()), mapX.Stride(),                           //
-                            static_cast<float *>(mapY.Data()), mapY.Stride());
+    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, //
+                            static_cast<float *>(mapX.Data()), mapX.Stride(),          //
+                            static_cast<float *>(mapY.Data()), mapY.Stride(),          //
+                            kWidth, kHeight);
 
     const void *mapXVoid = mapX.Data();
     const void *mapYVoid = mapY.Data();
@@ -549,9 +551,10 @@ TEST(GeometryTest, InitUndistortRectifyMapAppliesDistortion)
     const Status allocStatusY = mapY.Allocate(kHeight, kWidth, 1, sizeof(float), MatLocation::HOST);
     ASSERT_TRUE(allocStatusY.IsOK());
 
-    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, kWidth, kHeight, //
-                            static_cast<float *>(mapX.Data()), mapX.Stride(),                           //
-                            static_cast<float *>(mapY.Data()), mapY.Stride());
+    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, //
+                            static_cast<float *>(mapX.Data()), mapX.Stride(),          //
+                            static_cast<float *>(mapY.Data()), mapY.Stride(),          //
+                            kWidth, kHeight);
 
     const void *mapXVoid = mapX.Data();
     const void *mapYVoid = mapY.Data();
@@ -764,7 +767,10 @@ TEST(GeometryTest, InitUndistortRectifyMapMatchesOpenCV)
     ASSERT_TRUE(mapX.Allocate(kHeight, kWidth, 1, sizeof(float), MatLocation::HOST).IsOK());
     ASSERT_TRUE(mapY.Allocate(kHeight, kWidth, 1, sizeof(float), MatLocation::HOST).IsOK());
 
-    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, kWidth, kHeight, static_cast<float *>(mapX.Data()), mapX.Stride(), static_cast<float *>(mapY.Data()), mapY.Stride());
+    InitUndistortRectifyMap(intrinsics, distortion, rectificationRotation, projection, //
+                            static_cast<float *>(mapX.Data()), mapX.Stride(),          //
+                            static_cast<float *>(mapY.Data()), mapY.Stride(),          //
+                            kWidth, kHeight);
 
     const cv::Mat cameraMatrix = ToCvCameraMatrix(intrinsics);
     const cv::Mat distCoeffs = ToCvDistCoeffs(distortion);
