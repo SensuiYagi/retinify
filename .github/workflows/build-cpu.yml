@@ -1,0 +1,31 @@
+name: build-cpu
+
+on:
+  push:
+    branches:
+      - 0.x
+  pull_request:
+    branches:
+      - 0.x
+  workflow_dispatch:
+
+jobs:
+  build-cpu:
+    if: ${{ github.event_name != 'pull_request' || github.actor == 'retinify' }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Dependencies
+      run: |
+        sudo apt update
+        sudo apt-get install -y build-essential cmake curl git libopencv-dev
+        git submodule update --init --recursive
+
+    - name: Build RETINIFY
+      run: |
+        ./build.sh --install --cpu
