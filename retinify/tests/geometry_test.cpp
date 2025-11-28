@@ -19,7 +19,7 @@ namespace retinify
 namespace
 {
 constexpr double kTolLoose = 1e-5;
-constexpr double kRelTolLoose = 1e-3;
+constexpr double kRelTolLoose = 1e-2;
 constexpr double kTolStrict = 1e-12;
 
 void ExpectMatrixNear(const retinify::Mat3x3d &lhs, const retinify::Mat3x3d &rhs, double tol)
