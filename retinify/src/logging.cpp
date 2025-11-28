@@ -3,28 +3,30 @@
 
 #include "retinify/logging.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <source_location>
 #include <sstream>
 
 namespace retinify
 {
-static inline auto GetLogLevelRef() noexcept -> LogLevel &
+static inline auto GetLogLevelStorage() noexcept -> std::atomic<LogLevel> &
 {
-    static LogLevel level = LogLevel::INFO;
-    return level;
+    static std::atomic<LogLevel> storage{LogLevel::INFO};
+    return storage;
 }
 
 auto GetLogLevel() noexcept -> LogLevel
 {
-    return GetLogLevelRef();
+    return GetLogLevelStorage().load(std::memory_order_relaxed);
 }
 
 void SetLogLevel(LogLevel level) noexcept
 {
-    GetLogLevelRef() = level;
+    GetLogLevelStorage().store(level, std::memory_order_relaxed);
 }
 
 namespace
