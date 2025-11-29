@@ -52,6 +52,35 @@ auto Mat::Allocate(std::size_t rows, std::size_t cols, std::size_t channels, std
 
     void *newDeviceData = nullptr;
     std::size_t newStride = 0;
+    auto allocateHostBuffer = [&]() -> Status {
+        constexpr std::size_t alignment = 64;
+        if (columnsInBytes > std::numeric_limits<std::size_t>::max() - (alignment - 1))
+        {
+            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
+        }
+
+        newStride = ((columnsInBytes + alignment - 1) / alignment) * alignment;
+        if (rows > std::numeric_limits<std::size_t>::max() / newStride)
+        {
+            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
+        }
+
+        std::size_t allocSize = newStride * rows;
+        if (allocSize > std::numeric_limits<std::size_t>::max() - (alignment - 1))
+        {
+            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
+        }
+
+        std::size_t alignedSize = ((allocSize + alignment - 1) / alignment) * alignment;
+        newDeviceData = std::aligned_alloc(alignment, alignedSize);
+        if (newDeviceData == nullptr)
+        {
+            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+        }
+
+        std::memset(newDeviceData, 0, alignedSize);
+        return Status{};
+    };
 
     switch (location)
     {
@@ -79,38 +108,20 @@ auto Mat::Allocate(std::size_t rows, std::size_t cols, std::size_t channels, std
             return Status(StatusCategory::CUDA, StatusCode::FAIL);
         }
 #else
-        LogError("Not implemented.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
+        Status hostStatus = allocateHostBuffer();
+        if (!hostStatus.IsOK())
+        {
+            return hostStatus;
+        }
 #endif
         break;
     }
     case MatLocation::HOST: {
-        constexpr std::size_t alignment = 64;
-        if (columnsInBytes > std::numeric_limits<std::size_t>::max() - (alignment - 1))
+        Status hostStatus = allocateHostBuffer();
+        if (!hostStatus.IsOK())
         {
-            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
+            return hostStatus;
         }
-
-        newStride = ((columnsInBytes + alignment - 1) / alignment) * alignment;
-        if (rows > std::numeric_limits<std::size_t>::max() / newStride)
-        {
-            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
-        }
-
-        std::size_t allocSize = newStride * rows;
-        if (allocSize > std::numeric_limits<std::size_t>::max() - (alignment - 1))
-        {
-            return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
-        }
-
-        std::size_t alignedSize = ((allocSize + alignment - 1) / alignment) * alignment;
-        newDeviceData = std::aligned_alloc(alignment, alignedSize);
-        if (newDeviceData == nullptr)
-        {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
-        }
-
-        std::memset(newDeviceData, 0, alignedSize);
         break;
     }
     default: {
@@ -149,8 +160,7 @@ auto Mat::Free() noexcept -> Status
                 status = Status(StatusCategory::CUDA, StatusCode::FAIL);
             }
 #else
-            LogError("Not implemented.");
-            status = Status(StatusCategory::RETINIFY, StatusCode::FAIL);
+            std::free(deviceData_);
 #endif
             break;
         }
@@ -200,6 +210,16 @@ auto Mat::Upload(const void *hostData, std::size_t hostStride, Stream &stream) c
         return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
     }
 
+    auto copyFromHostBuffer = [&](const void *srcData, std::size_t srcStride) -> Status {
+        const unsigned char *src = static_cast<const unsigned char *>(srcData);
+        unsigned char *dst = static_cast<unsigned char *>(deviceData_);
+        for (std::size_t r = 0; r < deviceRows_; ++r)
+        {
+            std::memcpy(dst + r * deviceStride_, src + r * srcStride, deviceColumnsInBytes_);
+        }
+        return Status{};
+    };
+
     switch (location_)
     {
     case MatLocation::DEVICE: {
@@ -211,19 +231,12 @@ auto Mat::Upload(const void *hostData, std::size_t hostStride, Stream &stream) c
             return Status(StatusCategory::CUDA, StatusCode::FAIL);
         }
 #else
-        LogError("Not implemented.");
-        return Status(StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT);
+        return copyFromHostBuffer(hostData, hostStride);
 #endif
         break;
     }
     case MatLocation::HOST: {
-        const unsigned char *src = static_cast<const unsigned char *>(hostData);
-        unsigned char *dst = static_cast<unsigned char *>(deviceData_);
-        for (std::size_t r = 0; r < deviceRows_; ++r)
-        {
-            std::memcpy(dst + r * deviceStride_, src + r * hostStride, deviceColumnsInBytes_);
-        }
-        break;
+        return copyFromHostBuffer(hostData, hostStride);
     }
     default: {
         LogError("Invalid MatLocation specified.");
@@ -254,6 +267,16 @@ auto Mat::Download(void *hostData, std::size_t hostStride, Stream &stream) const
         return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
     }
 
+    auto copyToHostBuffer = [&](void *dstData, std::size_t dstStride) -> Status {
+        const unsigned char *src = static_cast<const unsigned char *>(deviceData_);
+        unsigned char *dst = static_cast<unsigned char *>(dstData);
+        for (std::size_t r = 0; r < deviceRows_; ++r)
+        {
+            std::memcpy(dst + r * dstStride, src + r * deviceStride_, deviceColumnsInBytes_);
+        }
+        return Status{};
+    };
+
     switch (location_)
     {
     case MatLocation::DEVICE: {
@@ -265,19 +288,12 @@ auto Mat::Download(void *hostData, std::size_t hostStride, Stream &stream) const
             return Status(StatusCategory::CUDA, StatusCode::FAIL);
         }
 #else
-        LogError("Not implemented.");
-        return Status(StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT);
+        return copyToHostBuffer(hostData, hostStride);
 #endif
         break;
     }
     case MatLocation::HOST: {
-        const unsigned char *src = static_cast<const unsigned char *>(deviceData_);
-        unsigned char *dst = static_cast<unsigned char *>(hostData);
-        for (std::size_t r = 0; r < deviceRows_; ++r)
-        {
-            std::memcpy(dst + r * hostStride, src + r * deviceStride_, deviceColumnsInBytes_);
-        }
-        break;
+        return copyToHostBuffer(hostData, hostStride);
     }
     default: {
         LogError("Invalid MatLocation specified.");
