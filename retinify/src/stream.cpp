@@ -34,6 +34,7 @@ auto Stream::Create() noexcept -> Status
     LogDebug("Created cudaStream_t.");
     return Status{};
 #else
+    return Status{};
 #endif
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
 }
@@ -55,6 +56,7 @@ auto Stream::Destroy() noexcept -> Status
     }
     return Status{};
 #else
+    return Status{};
 #endif
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
 }
@@ -75,6 +77,7 @@ auto Stream::Synchronize() const noexcept -> Status
     LogDebug("Synchronized cudaStream_t.");
     return Status{};
 #else
+    return Status{};
 #endif
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
 }
