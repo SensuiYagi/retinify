@@ -284,22 +284,22 @@ struct CalibrationParameters
 {
     /// @brief
     /// Intrinsics for the left camera
-    Intrinsics leftIntrinsics;
+    Intrinsics leftIntrinsics{};
     /// @brief
     /// Distortion for the left camera
-    Distortion leftDistortion;
+    Distortion leftDistortion{};
     /// @brief
     /// Intrinsics for the right camera
-    Intrinsics rightIntrinsics;
+    Intrinsics rightIntrinsics{};
     /// @brief
     /// Distortion for the right camera
-    Distortion rightDistortion;
+    Distortion rightDistortion{};
     /// @brief
     /// Rotation from the left to the right camera
-    Mat3x3d rotation;
+    Mat3x3d rotation{};
     /// @brief
     /// Translation from the left to the right camera
-    Vec3d translation;
+    Vec3d translation{};
     /// @brief
     /// Image width [pixels]
     std::uint32_t imageWidth{};
