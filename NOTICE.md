@@ -8,9 +8,10 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-| Name            | Link                                            | License     | Copyright                          |
-| --------------- | ----------------------------------------------- | ----------- | ---------------------------------- |
-| Doxygen Awesome | https://github.com/jothepro/doxygen-awesome-css | MIT License | Copyright (c) 2021 - 2023 jothepro |
+| Name                | Link                                            | License     | Copyright                             |
+| ------------------- | ----------------------------------------------- | ----------- | ------------------------------------- |
+| Doxygen Awesome     | https://github.com/jothepro/doxygen-awesome-css | MIT License | Copyright (c) 2021-2023 jothepro      |
+| JSON for Modern C++ | https://github.com/nlohmann/json                | MIT License | Copyright (c) 2013-2025 Niels Lohmann |
 
 ## Apache-2.0
 
