@@ -295,10 +295,10 @@ struct CalibrationParameters
     /// Distortion for the right camera
     Distortion rightDistortion{};
     /// @brief
-    /// Rotation from the left to the right camera
+    /// Rotation matrix
     Mat3x3d rotation{};
     /// @brief
-    /// Translation from the left to the right camera
+    /// Translation vector
     Vec3d translation{};
     /// @brief
     /// Image width [pixels]
