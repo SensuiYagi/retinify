@@ -3,12 +3,10 @@
 
 #include "retinify/io.hpp"
 
-#include <algorithm>
-#include <bit>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
-#include <iostream>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -101,110 +99,65 @@ class ScopedTempDir
 
     params.imageWidth = 640;
     params.imageHeight = 480;
-    params.reprojectionError = 0.25;
-    params.calibrationTime = 1720000000123456789ull;
-    const char left[] = "LEFT1234567890";
-    const char right[] = "RIGHT0987654321";
-    std::copy(std::begin(left), std::end(left), params.leftCameraSerial.begin());
-    std::copy(std::begin(right), std::end(right), params.rightCameraSerial.begin());
+    params.calibrationError = 0.25;
+    params.calibrationTime = 1720000000123456789ll;
 
     return params;
 }
 
-auto ExpectIntrinsicsEqual(const Intrinsics &expected, const Intrinsics &actual) -> void
+class IoTest : public ::testing::Test
 {
-    EXPECT_DOUBLE_EQ(expected.fx, actual.fx);
-    EXPECT_DOUBLE_EQ(expected.fy, actual.fy);
-    EXPECT_DOUBLE_EQ(expected.cx, actual.cx);
-    EXPECT_DOUBLE_EQ(expected.cy, actual.cy);
-    EXPECT_DOUBLE_EQ(expected.skew, actual.skew);
-}
-
-auto ExpectDistortionEqual(const Distortion &expected, const Distortion &actual) -> void
-{
-    EXPECT_DOUBLE_EQ(expected.k1, actual.k1);
-    EXPECT_DOUBLE_EQ(expected.k2, actual.k2);
-    EXPECT_DOUBLE_EQ(expected.p1, actual.p1);
-    EXPECT_DOUBLE_EQ(expected.p2, actual.p2);
-    EXPECT_DOUBLE_EQ(expected.k3, actual.k3);
-    EXPECT_DOUBLE_EQ(expected.k4, actual.k4);
-    EXPECT_DOUBLE_EQ(expected.k5, actual.k5);
-    EXPECT_DOUBLE_EQ(expected.k6, actual.k6);
-}
-
-auto ExpectRotationEqual(const Mat3x3d &expected, const Mat3x3d &actual) -> void
-{
-    for (std::size_t row = 0; row < expected.size(); ++row)
+  protected:
+    [[nodiscard]] auto Path(const std::string &filename) const -> std::filesystem::path
     {
-        for (std::size_t col = 0; col < expected[row].size(); ++col)
-        {
-            EXPECT_DOUBLE_EQ(expected[row][col], actual[row][col]) << "rotation mismatch at (" << row << ", " << col << ")";
-        }
+        return tempDir_.path() / filename;
     }
-}
 
-auto ExpectTranslationEqual(const Vec3d &expected, const Vec3d &actual) -> void
-{
-    for (std::size_t idx = 0; idx < expected.size(); ++idx)
+    [[nodiscard]] auto Save(const std::filesystem::path &path, const CalibrationParameters &params) const -> Status
     {
-        EXPECT_DOUBLE_EQ(expected[idx], actual[idx]) << "translation mismatch at index " << idx;
+        const auto pathString = path.string();
+        return SaveCalibrationParameters(pathString.c_str(), params);
     }
-}
 
-auto ExpectParametersEqual(const CalibrationParameters &expected, const CalibrationParameters &actual) -> void
-{
-    ExpectIntrinsicsEqual(expected.leftIntrinsics, actual.leftIntrinsics);
-    ExpectDistortionEqual(expected.leftDistortion, actual.leftDistortion);
-    ExpectIntrinsicsEqual(expected.rightIntrinsics, actual.rightIntrinsics);
-    ExpectDistortionEqual(expected.rightDistortion, actual.rightDistortion);
-    ExpectRotationEqual(expected.rotation, actual.rotation);
-    ExpectTranslationEqual(expected.translation, actual.translation);
-    EXPECT_EQ(expected.imageWidth, actual.imageWidth);
-    EXPECT_EQ(expected.imageHeight, actual.imageHeight);
-    EXPECT_DOUBLE_EQ(expected.reprojectionError, actual.reprojectionError);
-    EXPECT_EQ(expected.calibrationTime, actual.calibrationTime);
-    EXPECT_EQ(std::string(expected.leftCameraSerial.data(), expected.leftCameraSerial.size()), std::string(actual.leftCameraSerial.data(), actual.leftCameraSerial.size()));
-    EXPECT_EQ(std::string(expected.rightCameraSerial.data(), expected.rightCameraSerial.size()), std::string(actual.rightCameraSerial.data(), actual.rightCameraSerial.size()));
-}
+    [[nodiscard]] auto Load(const std::filesystem::path &path, CalibrationParameters &params) const -> Status
+    {
+        const auto pathString = path.string();
+        return LoadCalibrationParameters(pathString.c_str(), params);
+    }
 
-auto Byteswap32(std::uint32_t value) -> std::uint32_t
-{
-    return ((value & 0x000000FFu) << 24) | ((value & 0x0000FF00u) << 8) | ((value & 0x00FF0000u) >> 8) | ((value & 0xFF000000u) >> 24);
-}
+    ScopedTempDir tempDir_;
+    CalibrationParameters sample_{MakeSampleParameters()};
+};
 } // namespace
 
-TEST(IoTest, SaveAndLoadRoundTrip)
+TEST_F(IoTest, SaveAndLoadRoundTrip)
 {
-    ScopedTempDir tempDir;
-    const auto filePath = tempDir.path() / "calibration.bin";
-    const auto params = MakeSampleParameters();
+    const auto filePath = Path("calibration.json");
 
-    const auto saveStatus = SaveCalibrationParameters(filePath.string().c_str(), params);
+    const auto saveStatus = Save(filePath, sample_);
     ASSERT_TRUE(saveStatus.IsOK());
 
     CalibrationParameters loaded{};
-    const auto loadStatus = LoadCalibrationParameters(filePath.string().c_str(), loaded);
+    const auto loadStatus = Load(filePath, loaded);
     ASSERT_TRUE(loadStatus.IsOK());
 
-    ExpectParametersEqual(params, loaded);
+    EXPECT_EQ(sample_, loaded);
 }
 
-TEST(IoTest, SaveRejectsInvalidFilename)
+TEST_F(IoTest, SaveRejectsInvalidFilename)
 {
-    const auto params = MakeSampleParameters();
-
-    const auto nullStatus = SaveCalibrationParameters(nullptr, params);
+    const auto nullStatus = SaveCalibrationParameters(nullptr, sample_);
     EXPECT_FALSE(nullStatus.IsOK());
     EXPECT_EQ(nullStatus.Category(), StatusCategory::USER);
     EXPECT_EQ(nullStatus.Code(), StatusCode::INVALID_ARGUMENT);
 
-    const auto emptyStatus = SaveCalibrationParameters("", params);
+    const auto emptyStatus = SaveCalibrationParameters("", sample_);
     EXPECT_FALSE(emptyStatus.IsOK());
     EXPECT_EQ(emptyStatus.Category(), StatusCategory::USER);
     EXPECT_EQ(emptyStatus.Code(), StatusCode::INVALID_ARGUMENT);
 }
 
-TEST(IoTest, LoadRejectsInvalidFilename)
+TEST_F(IoTest, LoadRejectsInvalidFilename)
 {
     CalibrationParameters params{};
 
@@ -219,19 +172,17 @@ TEST(IoTest, LoadRejectsInvalidFilename)
     EXPECT_EQ(emptyStatus.Code(), StatusCode::INVALID_ARGUMENT);
 }
 
-TEST(IoTest, SaveFailsWhenParentIsFile)
+TEST_F(IoTest, SaveFailsWhenParentIsFile)
 {
-    ScopedTempDir tempDir;
-    const auto parent = tempDir.path() / "not-a-directory";
+    const auto parent = Path("not-a-directory");
     {
         std::ofstream marker(parent);
         ASSERT_TRUE(marker.is_open());
     }
 
-    const auto target = parent / "calibration.bin";
-    const auto params = MakeSampleParameters();
+    const auto target = parent / "calibration.json";
 
-    const auto status = SaveCalibrationParameters(target.string().c_str(), params);
+    const auto status = Save(target, sample_);
     EXPECT_FALSE(status.IsOK());
     EXPECT_EQ(status.Category(), StatusCategory::SYSTEM);
     EXPECT_EQ(status.Code(), StatusCode::FAIL);
@@ -240,64 +191,28 @@ TEST(IoTest, SaveFailsWhenParentIsFile)
     EXPECT_FALSE(std::filesystem::exists(target, ec));
 }
 
-TEST(IoTest, LoadFailsForMissingFile)
+TEST_F(IoTest, LoadFailsForMissingFile)
 {
-    ScopedTempDir tempDir;
-    const auto missing = tempDir.path() / "does-not-exist.cal";
+    const auto missing = Path("does-not-exist.json");
 
     CalibrationParameters params{};
-    const auto status = LoadCalibrationParameters(missing.string().c_str(), params);
+    const auto status = Load(missing, params);
 
     EXPECT_FALSE(status.IsOK());
     EXPECT_EQ(status.Category(), StatusCategory::SYSTEM);
     EXPECT_EQ(status.Code(), StatusCode::FAIL);
 }
 
-TEST(IoTest, LoadFailsForInvalidMagic)
+TEST_F(IoTest, SavesZeroRotationAndTranslationAsZeros)
 {
-    ScopedTempDir tempDir;
-    const auto filePath = tempDir.path() / "corrupt-magic.cal";
-    const auto params = MakeSampleParameters();
-    ASSERT_TRUE(SaveCalibrationParameters(filePath.string().c_str(), params).IsOK());
+    CalibrationParameters params;
+    const auto filePath = Path("zero-rt.json");
 
-    std::fstream file(filePath, std::ios::in | std::ios::out | std::ios::binary);
-    ASSERT_TRUE(file.is_open());
-    file.seekp(static_cast<std::streamoff>(0));
-    file.put('X');
-    file.close();
+    ASSERT_TRUE(Save(filePath, params).IsOK());
 
-    CalibrationParameters parsed{};
-    const auto status = LoadCalibrationParameters(filePath.string().c_str(), parsed);
+    CalibrationParameters loaded{};
+    ASSERT_TRUE(Load(filePath, loaded).IsOK());
 
-    EXPECT_FALSE(status.IsOK());
-    EXPECT_EQ(status.Category(), StatusCategory::SYSTEM);
-    EXPECT_EQ(status.Code(), StatusCode::FAIL);
-}
-
-TEST(IoTest, LoadFailsForUnsupportedVersion)
-{
-    ScopedTempDir tempDir;
-    const auto filePath = tempDir.path() / "bad-version.cal";
-    const auto params = MakeSampleParameters();
-    ASSERT_TRUE(SaveCalibrationParameters(filePath.string().c_str(), params).IsOK());
-
-    std::fstream file(filePath, std::ios::in | std::ios::out | std::ios::binary);
-    ASSERT_TRUE(file.is_open());
-    file.seekp(static_cast<std::streamoff>(13));
-
-    std::uint32_t newVersion = 999;
-    if constexpr (std::endian::native != std::endian::little)
-    {
-        newVersion = Byteswap32(newVersion);
-    }
-    file.write(reinterpret_cast<const char *>(&newVersion), sizeof(newVersion));
-    file.close();
-
-    CalibrationParameters parsed{};
-    const auto status = LoadCalibrationParameters(filePath.string().c_str(), parsed);
-
-    EXPECT_FALSE(status.IsOK());
-    EXPECT_EQ(status.Category(), StatusCategory::SYSTEM);
-    EXPECT_EQ(status.Code(), StatusCode::FAIL);
+    EXPECT_EQ(params, loaded);
 }
 } // namespace retinify
