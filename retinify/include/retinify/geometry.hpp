@@ -284,22 +284,22 @@ struct CalibrationParameters
 {
     /// @brief
     /// Intrinsics for the left camera
-    Intrinsics leftIntrinsics;
+    Intrinsics leftIntrinsics{};
     /// @brief
     /// Distortion for the left camera
-    Distortion leftDistortion;
+    Distortion leftDistortion{};
     /// @brief
     /// Intrinsics for the right camera
-    Intrinsics rightIntrinsics;
+    Intrinsics rightIntrinsics{};
     /// @brief
     /// Distortion for the right camera
-    Distortion rightDistortion;
+    Distortion rightDistortion{};
     /// @brief
     /// Rotation from the left to the right camera
-    Mat3x3d rotation;
+    Mat3x3d rotation{};
     /// @brief
     /// Translation from the left to the right camera
-    Vec3d translation;
+    Vec3d translation{};
     /// @brief
     /// Image width [pixels]
     std::uint32_t imageWidth{};
@@ -308,31 +308,23 @@ struct CalibrationParameters
     std::uint32_t imageHeight{};
     /// @brief
     /// Root mean square reprojection error [pixels]
-    double reprojectionError{};
+    double calibrationError{};
     /// @brief
-    /// Calibration timestamp in Unix time [nanoseconds]
-    std::uint64_t calibrationTime{};
-    /// @brief
-    /// Left camera hardware serial
-    std::array<char, 128> leftCameraSerial{};
-    /// @brief
-    /// Right camera hardware serial
-    std::array<char, 128> rightCameraSerial{};
+    /// Calibration timestamp in UNIX time [seconds since epoch, UTC]
+    std::int64_t calibrationTime{};
 
     [[nodiscard]] auto operator==(const CalibrationParameters &other) const noexcept -> bool
     {
-        return leftIntrinsics == other.leftIntrinsics &&       //
-               leftDistortion == other.leftDistortion &&       //
-               rightIntrinsics == other.rightIntrinsics &&     //
-               rightDistortion == other.rightDistortion &&     //
-               rotation == other.rotation &&                   //
-               translation == other.translation &&             //
-               imageWidth == other.imageWidth &&               //
-               imageHeight == other.imageHeight &&             //
-               reprojectionError == other.reprojectionError && //
-               calibrationTime == other.calibrationTime &&     //
-               leftCameraSerial == other.leftCameraSerial &&   //
-               rightCameraSerial == other.rightCameraSerial;   //
+        return leftIntrinsics == other.leftIntrinsics &&     //
+               leftDistortion == other.leftDistortion &&     //
+               rightIntrinsics == other.rightIntrinsics &&   //
+               rightDistortion == other.rightDistortion &&   //
+               rotation == other.rotation &&                 //
+               translation == other.translation &&           //
+               imageWidth == other.imageWidth &&             //
+               imageHeight == other.imageHeight &&           //
+               calibrationError == other.calibrationError && //
+               calibrationTime == other.calibrationTime;     //
     }
 };
 

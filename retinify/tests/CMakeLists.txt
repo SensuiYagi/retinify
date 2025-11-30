@@ -9,7 +9,10 @@ add_executable(retinify-tests ${SRCS_TESTS} ${SRC_RETINIFY})
 
 # LINKS
 target_link_libraries(retinify-tests 
-    PUBLIC retinify ${OpenCV_LIBS} gtest gtest_main
+    PUBLIC
+        retinify ${OpenCV_LIBS} gtest gtest_main
+    PRIVATE
+        nlohmann_json::nlohmann_json
 )
 
 # BUILD OPTIONS

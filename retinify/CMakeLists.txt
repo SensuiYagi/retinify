@@ -39,6 +39,11 @@ target_compile_options(retinify
         $<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>
 )
 
+target_link_libraries(retinify
+    PRIVATE
+        nlohmann_json::nlohmann_json
+)
+
 if(BUILD_WITH_TENSORRT)
     add_subdirectory(src/cuda)
     target_link_libraries(retinify 
