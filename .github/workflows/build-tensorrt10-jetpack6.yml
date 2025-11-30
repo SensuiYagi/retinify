@@ -57,7 +57,7 @@ jobs:
 
             git config --global --add safe.directory /workspace      
             git config --global --add safe.directory /workspace/3rdparty/googletest
-            git submodule sync --recursive
+            git config --global --add safe.directory /workspace/3rdparty/json
             git submodule update --init --recursive
 
             ./build.sh --install --tensorrt
