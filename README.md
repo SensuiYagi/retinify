@@ -39,11 +39,17 @@ Retinify is an advanced AI-powered stereo vision library designed for robotics. 
 > [!IMPORTANT]
 > Retinify is independent of OpenCV and supports various image data types.
   
+<details open>
+  <summary>Rectified Stereo Images</summary>
+
+Use this when the stereo images are already rectified.  
+The pipeline performs stereo matching and outputs the disparity map.  
+
 ```cpp
 #include <retinify/retinify.hpp>
 #include <opencv2/opencv.hpp>
 
-// LOAD INPUT IMAGES
+// LOAD RECTIFIED STEREO INPUT IMAGES
 cv::Mat leftImage = cv::imread("path/to/left.png");
 cv::Mat rightImage = cv::imread("path/to/right.png");
 
@@ -63,6 +69,59 @@ pipeline.Execute(leftImage.ptr<uint8_t>(), leftImage.step[0],
 // RETRIEVE DISPARITY
 pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
 ```
+
+</details>
+
+<details>
+  <summary>Non-Rectified Stereo Images</summary>
+
+Use this when the stereo images are not rectified.  
+The pipeline undistorts and rectifies the inputs using calibration parameters, performs stereo matching, and outputs disparity, depth, and a 3D point cloud.  
+
+> [!NOTE]
+> If you want to reproject already-rectified stereo images using calibration parameters, set all distortion coefficients to zero.
+
+```cpp
+#include <retinify/retinify.hpp>
+#include <opencv2/opencv.hpp>
+
+// LOAD NON-RECTIFIED STEREO INPUT IMAGES
+cv::Mat leftImage = cv::imread("path/to/left.png");
+cv::Mat rightImage = cv::imread("path/to/right.png");
+
+// PREPARE OUTPUT CONTAINER
+cv::Mat disparity = cv::Mat::zeros(leftImage.size(), CV_32FC1);
+cv::Mat depth = cv::Mat::zeros(leftImage.size(), CV_32FC1);
+cv::Mat pointCloud = cv::Mat::zeros(leftImage.size(), CV_32FC3);
+
+// LOAD CALIBRATION PARAMETERS
+retinify::CalibrationParameters calibParams;
+retinify::LoadCalibrationParameters("path/to/calib.json", calibParams);
+
+// CREATE STEREO MATCHING PIPELINE
+retinify::Pipeline pipeline;
+
+// INITIALIZE THE PIPELINE WITH CALIBRATION PARAMETERS
+pipeline.Initialize(leftImage.cols, leftImage.rows, 
+                    retinify::PixelFormat::RGB8, 
+                    retinify::DepthMode::ACCURATE, 
+                    calibParams);
+
+// EXECUTE STEREO MATCHING
+pipeline.Execute(leftImage.ptr<uint8_t>(), leftImage.step[0],
+                 rightImage.ptr<uint8_t>(), rightImage.step[0]);
+
+// RETRIEVE DISPARITY
+pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
+
+// RETRIEVE DEPTH
+pipeline.RetrieveDepth(depth.ptr<float>(), depth.step[0]);
+
+// RETRIEVE POINT CLOUD
+pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
+```
+
+</details>
 
 ## Getting Started
 📖 [**retinify documentation**](https://docs.retinify.ai/) — Developer guide and API reference.
