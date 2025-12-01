@@ -76,7 +76,7 @@ pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
   <summary>Non-Rectified Stereo Images</summary>
 
 Use this when the stereo images are not rectified.  
-The pipeline undistorts and rectifies the inputs using calibration parameters, performs stereo matching, and outputs disparity, depth, and a 3D point cloud.  
+The pipeline undistorts and rectifies the inputs using calibration parameters, performs stereo matching, and outputs disparity, depth, and a 3D point cloud.
 
 > [!NOTE]
 > If you want to reproject already-rectified stereo images using calibration parameters, set all distortion coefficients to zero.
