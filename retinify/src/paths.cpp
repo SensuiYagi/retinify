@@ -3,7 +3,7 @@
 
 #include "retinify/paths.hpp"
 #include "retinify/logging.hpp"
-#include "retinify/retinify_onnx.hpp"
+#include "retinify/retinifyModels.hpp"
 #include "retinify/version.hpp"
 
 #include <cstdlib>
