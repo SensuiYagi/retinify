@@ -42,9 +42,6 @@ Retinify is an advanced AI-powered stereo vision library designed for robotics. 
 <details open>
   <summary>Rectified Stereo Images</summary>
 
-Use this when the stereo images are already rectified.  
-The pipeline performs stereo matching and outputs the disparity map.  
-
 ```cpp
 #include <retinify/retinify.hpp>
 #include <opencv2/opencv.hpp>
@@ -75,10 +72,7 @@ pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
 <details>
   <summary>Non-Rectified Stereo Images</summary>
 
-Use this when the stereo images are not rectified.  
-The pipeline undistorts and rectifies the inputs using calibration parameters, performs stereo matching, and outputs disparity, depth, and a 3D point cloud.  
-
-> If you want to reproject already-rectified stereo images using calibration parameters, set all distortion coefficients to zero.
+> Using the calibration parameters, the pipeline performs undistortion, rectification, and 3D reprojection.
   
 ```cpp
 #include <retinify/retinify.hpp>
