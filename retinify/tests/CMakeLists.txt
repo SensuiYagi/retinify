@@ -34,3 +34,8 @@ target_include_directories(retinify-tests
     PRIVATE 
         ../src # retinify source
 )
+
+# INSTALL
+install(TARGETS retinify-tests
+    RUNTIME DESTINATION bin
+)
