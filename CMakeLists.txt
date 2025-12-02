@@ -24,8 +24,8 @@ string(STRIP "${VERSION_NUMBER}" PROJECT_VERSION)
 string(REPLACE "." ";" VERSION_LIST "${PROJECT_VERSION}")
 list(GET VERSION_LIST 0 PROJECT_VERSION_MAJOR)
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/retinify_version.hpp.in"
-    "${CMAKE_BINARY_DIR}/include/retinify/retinify_version.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/retinifyVersion.hpp.in"
+    "${CMAKE_BINARY_DIR}/include/retinify/retinifyVersion.hpp"
     @ONLY
 )
 
