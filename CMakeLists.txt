@@ -58,7 +58,7 @@ install(
 )
 
 # DOWNLOAD MODELS
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/DownloadModels.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/retinifyDownloadModels.cmake")
 
 set(STEREO_MATCHING_ONNX_FILE_NAME "stereo-matching.onnx")
 set(RETINIFY_MODELS_OWNER "retinify")
@@ -91,8 +91,8 @@ set(STEREO_MATCHING_ONNX_PATH
 )
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/retinify_onnx.hpp.in"
-    "${CMAKE_BINARY_DIR}/include/retinify/retinify_onnx.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/retinifyModels.hpp.in"
+    "${CMAKE_BINARY_DIR}/include/retinify/retinifyModels.hpp"
     @ONLY
 )
 
