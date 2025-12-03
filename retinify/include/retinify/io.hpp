@@ -15,7 +15,7 @@ namespace retinify
 /// @param parameters
 /// Calibration parameters to save.
 /// @return
-/// A Status object indicating whether the operation was successful.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto SaveCalibrationParameters(const char *filename, const CalibrationParameters &parameters) noexcept -> Status;
 
 /// @brief
@@ -25,6 +25,6 @@ RETINIFY_API auto SaveCalibrationParameters(const char *filename, const Calibrat
 /// @param parameters
 /// Calibration parameters to load into.
 /// @return
-/// A Status object indicating whether the operation was successful.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto LoadCalibrationParameters(const char *filename, CalibrationParameters &parameters) noexcept -> Status;
 } // namespace retinify

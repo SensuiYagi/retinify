@@ -28,7 +28,7 @@ namespace retinify
 /// @param maxDisparity
 /// Maximum disparity value for normalization.
 /// @return
-/// Status object indicating success or failure.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, //
                                     std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) -> Status;
 } // namespace retinify

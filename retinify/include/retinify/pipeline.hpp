@@ -64,7 +64,7 @@ class RETINIFY_API Pipeline
     /// @param calibrationParameters
     /// The stereo camera calibration parameters.
     /// @return
-    /// A Status object indicating whether the initialization was successful.
+    /// A Status object that indicates whether the operation was successful.
     [[nodiscard]] auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight,                                    //
                                   PixelFormat pixelFormat = PixelFormat::RGB8, DepthMode depthMode = DepthMode::ACCURATE, //
                                   const CalibrationParameters &calibrationParameters = CalibrationParameters{}) noexcept -> Status;
@@ -84,7 +84,7 @@ class RETINIFY_API Pipeline
     /// @param disparityStride
     /// Stride of a row in the output disparity data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     RETINIFY_DEPRECATED("Use Execute() instead")
     [[nodiscard]] auto Run(const std::uint8_t *leftImageData, std::size_t leftImageStride,   //
                            const std::uint8_t *rightImageData, std::size_t rightImageStride, //
@@ -101,7 +101,7 @@ class RETINIFY_API Pipeline
     /// @param rightImageStride
     /// Stride of a row in the right image (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Initialize().
     [[nodiscard]] auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, //
@@ -114,7 +114,7 @@ class RETINIFY_API Pipeline
     /// @param leftImageStride
     /// Stride of a row in the output left image data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrieveRectifiedLeftImage(std::uint8_t *leftImageData, std::size_t leftImageStride) noexcept -> Status;
@@ -126,7 +126,7 @@ class RETINIFY_API Pipeline
     /// @param rightImageStride
     /// Stride of a row in the output right image data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrieveRectifiedRightImage(std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
@@ -142,7 +142,7 @@ class RETINIFY_API Pipeline
     /// @param rightImageStride
     /// Stride of a row in the output right image data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, //
@@ -155,7 +155,7 @@ class RETINIFY_API Pipeline
     /// @param disparityStride
     /// Stride of a row in the output disparity data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrieveDisparity(float *disparityData, std::size_t disparityStride) noexcept -> Status;
@@ -167,7 +167,7 @@ class RETINIFY_API Pipeline
     /// @param depthStride
     /// Stride of a row in the output depth data (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrieveDepth(float *depthData, std::size_t depthStride) noexcept -> Status;
@@ -179,7 +179,7 @@ class RETINIFY_API Pipeline
     /// @param pointCloudStride
     /// Stride of a row in the output point cloud buffer (in bytes).
     /// @return
-    /// A Status object indicating whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful.
     /// @note
     /// This function must be called after Execute().
     [[nodiscard]] auto RetrievePointCloud(float *pointCloudData, std::size_t pointCloudStride) noexcept -> Status;

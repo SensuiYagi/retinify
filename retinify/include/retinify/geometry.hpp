@@ -379,7 +379,7 @@ RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion 
 /// values between 0 and 1 yield intermediate results,
 /// and -1 applies the default behavior.
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, //
                                 const Intrinsics &intrinsics2, const Distortion &distortion2, //
                                 const Mat3x3d &rotation, const Vec3d &translation,            //
@@ -411,7 +411,7 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// @param mapyStride
 /// Stride (in bytes) of a row in mapy
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                                           const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
                                           std::uint32_t imageWidth, std::uint32_t imageHeight,        //
@@ -433,7 +433,7 @@ RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Di
 /// @param imageHeight
 /// Image height in pixels
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto InitIdentityMap(float *mapx, std::size_t mapxStride, //
                                   float *mapy, std::size_t mapyStride, //
                                   std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;
