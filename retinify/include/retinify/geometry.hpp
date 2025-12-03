@@ -221,16 +221,16 @@ RETINIFY_API auto Log(const Mat3x3d &rotation) noexcept -> Vec3d;
 struct Intrinsics
 {
     /// @brief
-    /// Focal length in x [pixels]
+    /// Focal length in x (in pixels).
     double fx{0};
     /// @brief
-    /// Focal length in y [pixels]
+    /// Focal length in y (in pixels).
     double fy{0};
     /// @brief
-    /// Principal point x-coordinate [pixels]
+    /// Principal point x-coordinate (in pixels).
     double cx{0};
     /// @brief
-    /// Principal point y-coordinate [pixels]
+    /// Principal point y-coordinate (in pixels).
     double cy{0};
     /// @brief
     /// Skew coefficient
@@ -305,16 +305,16 @@ struct CalibrationParameters
     /// Translation vector
     Vec3d translation{};
     /// @brief
-    /// Image width [pixels]
+    /// Image width (in pixels).
     std::uint32_t imageWidth{};
     /// @brief
-    /// Image height [pixels]
+    /// Image height (in pixels).
     std::uint32_t imageHeight{};
     /// @brief
-    /// Root mean square reprojection error [pixels]
+    /// Root mean square reprojection error (in pixels).
     double calibrationError{};
     /// @brief
-    /// Calibration timestamp in UNIX time [seconds since epoch, UTC]
+    /// Calibration timestamp (in seconds since epoch, UTC).
     std::int64_t calibrationTime{};
 
     [[nodiscard]] auto operator==(const CalibrationParameters &other) const noexcept -> bool
@@ -339,9 +339,9 @@ struct CalibrationParameters
 /// @param distortion
 /// Distortion parameters.
 /// @param pixel
-/// Distorted 2D point in pixel coordinates.
+/// Distorted 2D point (in pixel coordinates).
 /// @return
-/// Undistorted 2D point in pixel coordinates.
+/// Undistorted 2D point (in pixel coordinates).
 RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d;
 
 /// @brief
@@ -359,9 +359,9 @@ RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion 
 /// @param translation
 /// Translation from the first to the second camera.
 /// @param imageWidth
-/// Image width in pixels.
+/// Image width (in pixels).
 /// @param imageHeight
-/// Image height in pixels.
+/// Image height (in pixels).
 /// @param rotation1
 /// Output rectification rotation for the first camera.
 /// @param rotation2
@@ -399,17 +399,17 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// @param projectionMatrix
 /// Projection matrix
 /// @param imageWidth
-/// Image width in pixels.
+/// Image width (in pixels).
 /// @param imageHeight
-/// Image height in pixels.
+/// Image height (in pixels).
 /// @param mapx
 /// Output map for x-coordinates
 /// @param mapxStride
-/// Stride (in bytes) of a row in mapx
+/// Stride of a row in mapx (in bytes).
 /// @param mapy
 /// Output map for y-coordinates
 /// @param mapyStride
-/// Stride (in bytes) of a row in mapy
+/// Stride of a row in mapy (in bytes).
 /// @return
 /// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
@@ -423,15 +423,15 @@ RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Di
 /// @param mapx
 /// Output map for x-coordinates
 /// @param mapxStride
-/// Stride (in bytes) of a row in mapx
+/// Stride of a row in mapx (in bytes).
 /// @param mapy
 /// Output map for y-coordinates
 /// @param mapyStride
-/// Stride (in bytes) of a row in mapy
+/// Stride of a row in mapy (in bytes).
 /// @param imageWidth
-/// Image width in pixels
+/// Image width (in pixels).
 /// @param imageHeight
-/// Image height in pixels
+/// Image height (in pixels).
 /// @return
 /// A Status object that indicates whether the operation was successful.
 RETINIFY_API auto InitIdentityMap(float *mapx, std::size_t mapxStride, //

@@ -16,15 +16,15 @@ namespace retinify
 /// @param src
 /// Input disparity map (32-bit float).
 /// @param srcStride
-/// Stride of the input disparity map in bytes.
+/// Stride of the input disparity map (in bytes).
 /// @param dst
 /// Output colored disparity map (8-bit 3-channel RGB).
 /// @param dstStride
-/// Stride of the output colored disparity map in bytes.
+/// Stride of the output colored disparity map (in bytes).
 /// @param imageWidth
-/// Width of the input and output disparity maps.
+/// Width of the input and output disparity maps (in pixels).
 /// @param imageHeight
-/// Height of the input and output disparity maps.
+/// Height of the input and output disparity maps (in pixels).
 /// @param maxDisparity
 /// Maximum disparity value for normalization.
 /// @return
