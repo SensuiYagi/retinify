@@ -13,34 +13,34 @@
 namespace retinify
 {
 /// @brief
-/// The pixel format options for input images.
+/// The pixel format options for input images
 enum class PixelFormat : std::uint8_t
 {
     /// @brief
-    /// 8-bit 1ch, Grayscale format.
+    /// 8-bit 1ch, Grayscale format
     GRAY8,
     /// @brief
-    /// 8-bit 3ch, RGB format.
+    /// 8-bit 3ch, RGB format
     RGB8,
 };
 
 /// @brief
-/// The depth mode options for stereo matching pipeline.
+/// The depth mode options for stereo matching pipeline
 enum class DepthMode : std::uint8_t
 {
     /// @brief
-    /// Fastest, with lowest accuracy.
+    /// Fastest, with lowest accuracy
     FAST,
     /// @brief
-    /// Balanced, with moderate accuracy and speed.
+    /// Balanced, with moderate accuracy and speed
     BALANCED,
     /// @brief
-    /// Most accurate, with slowest performance.
+    /// Most accurate, with slowest performance
     ACCURATE,
 };
 
 /// @brief
-/// A `retinify::Pipeline` provides an interface for running a stereo matching.
+/// A `retinify::Pipeline` provides an interface for running a stereo matching
 class RETINIFY_API Pipeline
 {
   public:
@@ -52,136 +52,136 @@ class RETINIFY_API Pipeline
     auto operator=(Pipeline &&) noexcept -> Pipeline & = delete;
 
     /// @brief
-    /// Initializes the stereo matching pipeline with the given image dimensions.
+    /// Initializes the stereo matching pipeline with the given image dimensions
     /// @param imageWidth
-    /// Width of the input images (in pixels).
+    /// Width of the input images (in pixels)
     /// @param imageHeight
-    /// Height of the input images (in pixels).
+    /// Height of the input images (in pixels)
     /// @param pixelFormat
-    /// The pixel format of the input images.
+    /// The pixel format of the input images
     /// @param depthMode
-    /// The depth mode option for the stereo matching.
+    /// The depth mode option for the stereo matching
     /// @param calibrationParameters
-    /// The stereo camera calibration parameters.
+    /// The stereo camera calibration parameters
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     [[nodiscard]] auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight,                                    //
                                   PixelFormat pixelFormat = PixelFormat::RGB8, DepthMode depthMode = DepthMode::ACCURATE, //
                                   const CalibrationParameters &calibrationParameters = CalibrationParameters{}) noexcept -> Status;
 
     /// @brief
-    /// Executes the stereo matching pipeline using the given left and right image data.
+    /// Executes the stereo matching pipeline using the given left and right image data
     /// @param leftImageData
-    /// Pointer to the left image data.
+    /// Pointer to the left image data
     /// @param leftImageStride
-    /// Stride of a row in the left image (in bytes).
+    /// Stride of a row in the left image (in bytes)
     /// @param rightImageData
-    /// Pointer to the right image data.
+    /// Pointer to the right image data
     /// @param rightImageStride
-    /// Stride of a row in the right image (in bytes).
+    /// Stride of a row in the right image (in bytes)
     /// @param disparityData
-    /// Pointer to the output buffer for disparity data (32-bit float).
+    /// Pointer to the output buffer for disparity data (32-bit float)
     /// @param disparityStride
-    /// Stride of a row in the output disparity data (in bytes).
+    /// Stride of a row in the output disparity data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     RETINIFY_DEPRECATED("Use Execute() instead")
     [[nodiscard]] auto Run(const std::uint8_t *leftImageData, std::size_t leftImageStride,   //
                            const std::uint8_t *rightImageData, std::size_t rightImageStride, //
                            float *disparityData, std::size_t disparityStride) noexcept -> Status;
 
     /// @brief
-    /// Executes the stereo matching pipeline using the given left and right image data.
+    /// Executes the stereo matching pipeline using the given left and right image data
     /// @param leftImageData
-    /// Pointer to the left image data.
+    /// Pointer to the left image data
     /// @param leftImageStride
-    /// Stride of a row in the left image (in bytes).
+    /// Stride of a row in the left image (in bytes)
     /// @param rightImageData
-    /// Pointer to the right image data.
+    /// Pointer to the right image data
     /// @param rightImageStride
-    /// Stride of a row in the right image (in bytes).
+    /// Stride of a row in the right image (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Initialize().
+    /// This function must be called after Initialize()
     [[nodiscard]] auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, //
                                const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
 
     /// @brief
-    /// Retrieves the rectified left image.
+    /// Retrieves the rectified left image
     /// @param leftImageData
-    /// Pointer to the output buffer for left image data (8-bit unsigned char).
+    /// Pointer to the output buffer for left image data (8-bit unsigned char)
     /// @param leftImageStride
-    /// Stride of a row in the output left image data (in bytes).
+    /// Stride of a row in the output left image data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrieveRectifiedLeftImage(std::uint8_t *leftImageData, std::size_t leftImageStride) noexcept -> Status;
 
     /// @brief
-    /// Retrieves the rectified right image.
+    /// Retrieves the rectified right image
     /// @param rightImageData
-    /// Pointer to the output buffer for right image data (8-bit unsigned char).
+    /// Pointer to the output buffer for right image data (8-bit unsigned char)
     /// @param rightImageStride
-    /// Stride of a row in the output right image data (in bytes).
+    /// Stride of a row in the output right image data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrieveRectifiedRightImage(std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
 
     /// @brief
-    /// Retrieves the rectified left and right images.
+    /// Retrieves the rectified left and right images
     /// @param leftImageData
-    /// Pointer to the output buffer for left image data (8-bit unsigned char).
+    /// Pointer to the output buffer for left image data (8-bit unsigned char)
     /// @param leftImageStride
-    /// Stride of a row in the output left image data (in bytes).
+    /// Stride of a row in the output left image data (in bytes)
     /// @param rightImageData
-    /// Pointer to the output buffer for right image data (8-bit unsigned char).
+    /// Pointer to the output buffer for right image data (8-bit unsigned char)
     /// @param rightImageStride
-    /// Stride of a row in the output right image data (in bytes).
+    /// Stride of a row in the output right image data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, //
                                                std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
 
     /// @brief
-    /// Retrieves the computed disparity map.
+    /// Retrieves the computed disparity map
     /// @param disparityData
-    /// Pointer to the output buffer for disparity data (32-bit float).
+    /// Pointer to the output buffer for disparity data (32-bit float)
     /// @param disparityStride
-    /// Stride of a row in the output disparity data (in bytes).
+    /// Stride of a row in the output disparity data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrieveDisparity(float *disparityData, std::size_t disparityStride) noexcept -> Status;
 
     /// @brief
-    /// Retrieves the computed depth map.
+    /// Retrieves the computed depth map
     /// @param depthData
-    /// Pointer to the output buffer for depth data (32-bit float).
+    /// Pointer to the output buffer for depth data (32-bit float)
     /// @param depthStride
-    /// Stride of a row in the output depth data (in bytes).
+    /// Stride of a row in the output depth data (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrieveDepth(float *depthData, std::size_t depthStride) noexcept -> Status;
 
     /// @brief
-    /// Reprojects the computed disparity map to a 3D point cloud.
+    /// Reprojects the computed disparity map to a 3D point cloud
     /// @param pointCloudData
-    /// Pointer to the output buffer for point cloud data (32-bit float, 3 channels).
+    /// Pointer to the output buffer for point cloud data (32-bit float, 3 channels)
     /// @param pointCloudStride
-    /// Stride of a row in the output point cloud buffer (in bytes).
+    /// Stride of a row in the output point cloud buffer (in bytes)
     /// @return
-    /// A Status object that indicates whether the operation was successful.
+    /// A Status object that indicates whether the operation was successful
     /// @note
-    /// This function must be called after Execute().
+    /// This function must be called after Execute()
     [[nodiscard]] auto RetrievePointCloud(float *pointCloudData, std::size_t pointCloudStride) noexcept -> Status;
 
   private:

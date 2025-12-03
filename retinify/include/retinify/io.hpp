@@ -9,22 +9,22 @@
 namespace retinify
 {
 /// @brief
-/// Save stereo calibration parameters.
+/// Save stereo calibration parameters
 /// @param filename
-/// Path to the output file.
+/// Path to the output file
 /// @param parameters
-/// Calibration parameters to save.
+/// Calibration parameters to save
 /// @return
-/// A Status object that indicates whether the operation was successful.
+/// A Status object that indicates whether the operation was successful
 RETINIFY_API auto SaveCalibrationParameters(const char *filename, const CalibrationParameters &parameters) noexcept -> Status;
 
 /// @brief
-/// Load stereo calibration parameters.
+/// Load stereo calibration parameters
 /// @param filename
-/// Path to the input file.
+/// Path to the input file
 /// @param parameters
-/// Calibration parameters to load into.
+/// Calibration parameters to load into
 /// @return
-/// A Status object that indicates whether the operation was successful.
+/// A Status object that indicates whether the operation was successful
 RETINIFY_API auto LoadCalibrationParameters(const char *filename, CalibrationParameters &parameters) noexcept -> Status;
 } // namespace retinify
