@@ -15,16 +15,22 @@ namespace retinify
 /// Logging verbosity levels for retinify.
 enum class LogLevel : std::uint8_t
 {
+    /// @brief
     /// Debug messages.
     DEBUG,
+    /// @brief
     /// Informational messages.
     INFO,
+    /// @brief
     /// Warning messages.
     WARN,
+    /// @brief
     /// Error messages.
     ERROR,
+    /// @brief
     /// Fatal Error messages.
     FATAL,
+    /// @brief
     /// Disable all logging.
     OFF,
 };

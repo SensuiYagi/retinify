@@ -74,13 +74,17 @@ using Mat4x4f = std::array<std::array<float, 4>, 4>;
 /// Type of the rectangle coordinates and dimensions.
 template <typename T> struct Rect2
 {
-    /// @brief X coordinate of the top-left corner.
+    /// @brief
+    /// X coordinate of the top-left corner.
     T x{0};
-    /// @brief Y coordinate of the top-left corner.
+    /// @brief
+    /// Y coordinate of the top-left corner.
     T y{0};
-    /// @brief Width of the rectangle.
+    /// @brief
+    /// Width of the rectangle.
     T width{0};
-    /// @brief Height of the rectangle.
+    /// @brief
+    /// Height of the rectangle.
     T height{0};
 };
 

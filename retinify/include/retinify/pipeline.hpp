@@ -74,15 +74,15 @@ class RETINIFY_API Pipeline
     /// @param leftImageData
     /// Pointer to the left image data.
     /// @param leftImageStride
-    /// Stride (in bytes) of a row in the left image.
+    /// Stride of a row in the left image (in bytes).
     /// @param rightImageData
     /// Pointer to the right image data.
     /// @param rightImageStride
-    /// Stride (in bytes) of a row in the right image.
+    /// Stride of a row in the right image (in bytes).
     /// @param disparityData
     /// Pointer to the output buffer for disparity data (32-bit float).
     /// @param disparityStride
-    /// Stride (in bytes) of a row in the output disparity data.
+    /// Stride of a row in the output disparity data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     RETINIFY_DEPRECATED("Use Execute() instead")
@@ -95,11 +95,11 @@ class RETINIFY_API Pipeline
     /// @param leftImageData
     /// Pointer to the left image data.
     /// @param leftImageStride
-    /// Stride (in bytes) of a row in the left image.
+    /// Stride of a row in the left image (in bytes).
     /// @param rightImageData
     /// Pointer to the right image data.
     /// @param rightImageStride
-    /// Stride (in bytes) of a row in the right image.
+    /// Stride of a row in the right image (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -112,7 +112,7 @@ class RETINIFY_API Pipeline
     /// @param leftImageData
     /// Pointer to the output buffer for left image data (8-bit unsigned char).
     /// @param leftImageStride
-    /// Stride (in bytes) of a row in the output left image data.
+    /// Stride of a row in the output left image data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -124,7 +124,7 @@ class RETINIFY_API Pipeline
     /// @param rightImageData
     /// Pointer to the output buffer for right image data (8-bit unsigned char).
     /// @param rightImageStride
-    /// Stride (in bytes) of a row in the output right image data.
+    /// Stride of a row in the output right image data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -136,11 +136,11 @@ class RETINIFY_API Pipeline
     /// @param leftImageData
     /// Pointer to the output buffer for left image data (8-bit unsigned char).
     /// @param leftImageStride
-    /// Stride (in bytes) of a row in the output left image data.
+    /// Stride of a row in the output left image data (in bytes).
     /// @param rightImageData
     /// Pointer to the output buffer for right image data (8-bit unsigned char).
     /// @param rightImageStride
-    /// Stride (in bytes) of a row in the output right image data.
+    /// Stride of a row in the output right image data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -153,7 +153,7 @@ class RETINIFY_API Pipeline
     /// @param disparityData
     /// Pointer to the output buffer for disparity data (32-bit float).
     /// @param disparityStride
-    /// Stride (in bytes) of a row in the output disparity data.
+    /// Stride of a row in the output disparity data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -165,7 +165,7 @@ class RETINIFY_API Pipeline
     /// @param depthData
     /// Pointer to the output buffer for depth data (32-bit float).
     /// @param depthStride
-    /// Stride (in bytes) of a row in the output depth data.
+    /// Stride of a row in the output depth data (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note
@@ -177,7 +177,7 @@ class RETINIFY_API Pipeline
     /// @param pointCloudData
     /// Pointer to the output buffer for point cloud data (32-bit float, 3 channels).
     /// @param pointCloudStride
-    /// Stride (in bytes) of a row in the output point cloud buffer.
+    /// Stride of a row in the output point cloud buffer (in bytes).
     /// @return
     /// A Status object indicating whether the operation was successful.
     /// @note

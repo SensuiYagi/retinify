@@ -13,14 +13,19 @@ namespace retinify
 /// Status categories used by retinify.
 enum class StatusCategory : std::uint8_t
 {
+    /// @brief
     /// No category.
     NONE,
+    /// @brief
     /// Retinify-internal category.
     RETINIFY,
+    /// @brief
     /// System-related category.
     SYSTEM,
+    /// @brief
     /// CUDA-related category.
     CUDA,
+    /// @brief
     /// User-originated category.
     USER,
 };
@@ -29,10 +34,13 @@ enum class StatusCategory : std::uint8_t
 /// Status codes returned by retinify operations.
 enum class StatusCode : std::uint8_t
 {
+    /// @brief
     /// Operation succeeded.
     OK,
+    /// @brief
     /// Operation failed.
     FAIL,
+    /// @brief
     /// Invalid argument provided.
     INVALID_ARGUMENT,
 };
