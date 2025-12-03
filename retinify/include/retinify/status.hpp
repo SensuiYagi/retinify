@@ -10,35 +10,43 @@
 namespace retinify
 {
 /// @brief
-/// Status categories used by retinify.
+/// Status categories used by retinify
 enum class StatusCategory : std::uint8_t
 {
-    /// No category.
+    /// @brief
+    /// No category
     NONE,
-    /// Retinify-internal category.
+    /// @brief
+    /// Retinify-internal category
     RETINIFY,
-    /// System-related category.
+    /// @brief
+    /// System-related category
     SYSTEM,
-    /// CUDA-related category.
+    /// @brief
+    /// CUDA-related category
     CUDA,
-    /// User-originated category.
+    /// @brief
+    /// User-originated category
     USER,
 };
 
 /// @brief
-/// Status codes returned by retinify operations.
+/// Status codes returned by retinify operations
 enum class StatusCode : std::uint8_t
 {
-    /// Operation succeeded.
+    /// @brief
+    /// Operation succeeded
     OK,
-    /// Operation failed.
+    /// @brief
+    /// Operation failed
     FAIL,
-    /// Invalid argument provided.
+    /// @brief
+    /// Invalid argument provided
     INVALID_ARGUMENT,
 };
 
 /// @brief
-/// This class represents the status of an operation in the retinify library.
+/// This class represents the status of an operation in the retinify library
 class RETINIFY_API Status
 {
   public:
@@ -51,21 +59,21 @@ class RETINIFY_API Status
     auto operator=(Status &&) noexcept -> Status & = default;
 
     /// @brief
-    /// Returns whether the status is OK.
+    /// Returns whether the status is OK
     /// @return
-    /// True if the status is OK; false otherwise.
+    /// True if the status is OK; false otherwise
     [[nodiscard]] auto IsOK() const noexcept -> bool;
 
     /// @brief
-    /// Returns the status category.
+    /// Returns the status category
     /// @return
-    /// The status category.
+    /// The status category
     [[nodiscard]] auto Category() const noexcept -> StatusCategory;
 
     /// @brief
-    /// Returns the status code.
+    /// Returns the status code
     /// @return
-    /// The status code.
+    /// The status code
     [[nodiscard]] auto Code() const noexcept -> StatusCode;
 
   private:

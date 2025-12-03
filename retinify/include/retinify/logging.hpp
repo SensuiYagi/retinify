@@ -12,72 +12,78 @@
 namespace retinify
 {
 /// @brief
-/// Logging verbosity levels for retinify.
+/// Logging verbosity levels for retinify
 enum class LogLevel : std::uint8_t
 {
-    /// Debug messages.
+    /// @brief
+    /// Debug messages
     DEBUG,
-    /// Informational messages.
+    /// @brief
+    /// Informational messages
     INFO,
-    /// Warning messages.
+    /// @brief
+    /// Warning messages
     WARN,
-    /// Error messages.
+    /// @brief
+    /// Error messages
     ERROR,
-    /// Fatal Error messages.
+    /// @brief
+    /// Fatal Error messages
     FATAL,
-    /// Disable all logging.
+    /// @brief
+    /// Disable all logging
     OFF,
 };
 
 /// @brief
-/// Returns the current log level.
+/// Returns the current log level
 /// @return
-/// The current log level.
+/// The current log level
 RETINIFY_API auto GetLogLevel() noexcept -> LogLevel;
 
 /// @brief
-/// Sets the log level.
+/// Sets the log level
 /// @param level
-/// The new log level to apply.
+/// The new log level to apply
 RETINIFY_API void SetLogLevel(LogLevel level) noexcept;
 
 /// @brief
-/// Logs a debug message.
+/// Logs a debug message
 /// @param message
-/// The message to log.
+/// The message to log
 /// @param location
-/// The source location of the log call (defaults to the call site).
+/// The source location of the log call (defaults to the call site)
 RETINIFY_API void LogDebug(const char *message, std::source_location location = std::source_location::current()) noexcept;
 
 /// @brief
-/// Logs an informational message.
+/// Logs an informational message
 /// @param message
-/// The message to log.
+/// The message to log
 /// @param location
-/// The source location of the log call (defaults to the call site).
+/// The source location of the log call (defaults to the call site)
 RETINIFY_API void LogInfo(const char *message, std::source_location location = std::source_location::current()) noexcept;
 
 /// @brief
-/// Logs a warning message.
+/// Logs a warning message
 /// @param message
-/// The message to log.
+/// The message to log
 /// @param location
-/// The source location of the log call (defaults to the call site).
+/// The source location of the log call (defaults to the call site)
 RETINIFY_API void LogWarn(const char *message, std::source_location location = std::source_location::current()) noexcept;
 
 /// @brief
-/// Logs an error message.
+/// Logs an error message
 /// @param message
-/// The message to log.
+/// The message to log
 /// @param location
-/// The source location of the log call (defaults to the call site).
+/// The source location of the log call (defaults to the call site)
 RETINIFY_API void LogError(const char *message, std::source_location location = std::source_location::current()) noexcept;
 
 /// @brief
-/// Logs a fatal error message.
+/// Logs a fatal error message
 /// @param message
-/// The message to log.
+/// The message to log
 /// @param location
-/// The source location of the log call (defaults to the call site).
+/// The source location of the log call (defaults to the call site)
 RETINIFY_API void LogFatal(const char *message, std::source_location location = std::source_location::current()) noexcept;
 } // namespace retinify

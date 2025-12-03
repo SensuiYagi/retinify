@@ -13,220 +13,224 @@
 namespace retinify
 {
 /// @brief
-/// 2D vector (double).
+/// 2D vector (double)
 using Vec2d = std::array<double, 2>;
 
 /// @brief
-/// 3D vector (double).
+/// 3D vector (double)
 using Vec3d = std::array<double, 3>;
 
 /// @brief
-/// 2D point (double).
+/// 2D point (double)
 using Point2d = std::array<double, 2>;
 
 /// @brief
-/// 3D point (double).
+/// 3D point (double)
 using Point3d = std::array<double, 3>;
 
 /// @brief
-/// 3x3 matrix (double, row-major).
+/// 3x3 matrix (double, row-major)
 using Mat3x3d = std::array<std::array<double, 3>, 3>;
 
 /// @brief
-/// 3x4 matrix (double, row-major).
+/// 3x4 matrix (double, row-major)
 using Mat3x4d = std::array<std::array<double, 4>, 3>;
 
 /// @brief
-/// 4x4 matrix (double, row-major).
+/// 4x4 matrix (double, row-major)
 using Mat4x4d = std::array<std::array<double, 4>, 4>;
 
 /// @brief
-/// 2D vector (float).
+/// 2D vector (float)
 using Vec2f = std::array<float, 2>;
 
 /// @brief
-/// 3D vector (float).
+/// 3D vector (float)
 using Vec3f = std::array<float, 3>;
 
 /// @brief
-/// 2D point (float).
+/// 2D point (float)
 using Point2f = std::array<float, 2>;
 
 /// @brief
-/// 3D point (float).
+/// 3D point (float)
 using Point3f = std::array<float, 3>;
 
 /// @brief
-/// 3x3 matrix (float, row-major).
+/// 3x3 matrix (float, row-major)
 using Mat3x3f = std::array<std::array<float, 3>, 3>;
 
 /// @brief
-/// 3x4 matrix (float, row-major).
+/// 3x4 matrix (float, row-major)
 using Mat3x4f = std::array<std::array<float, 4>, 3>;
 
 /// @brief
-/// 4x4 matrix (float, row-major).
+/// 4x4 matrix (float, row-major)
 using Mat4x4f = std::array<std::array<float, 4>, 4>;
 
 /// @brief
-/// Rectangle structure.
+/// Rectangle structure
 /// @tparam T
-/// Type of the rectangle coordinates and dimensions.
+/// Type of the rectangle coordinates and dimensions
 template <typename T> struct Rect2
 {
-    /// @brief X coordinate of the top-left corner.
+    /// @brief
+    /// X coordinate of the top-left corner
     T x{0};
-    /// @brief Y coordinate of the top-left corner.
+    /// @brief
+    /// Y coordinate of the top-left corner
     T y{0};
-    /// @brief Width of the rectangle.
+    /// @brief
+    /// Width of the rectangle
     T width{0};
-    /// @brief Height of the rectangle.
+    /// @brief
+    /// Height of the rectangle
     T height{0};
 };
 
 /// @brief
-/// 2D rectangle (int).
+/// 2D rectangle (int)
 using Rect2i = Rect2<std::int32_t>;
 
 /// @brief
-/// 2D rectangle (double).
+/// 2D rectangle (double)
 using Rect2d = Rect2<double>;
 
 /// @brief
-/// Create a 3x3 identity matrix.
+/// Create a 3x3 identity matrix
 /// @return
-/// 3x3 identity matrix.
+/// 3x3 identity matrix
 RETINIFY_API auto Identity() noexcept -> Mat3x3d;
 
 /// @brief
-/// Compute the determinant of a 3x3 matrix.
+/// Compute the determinant of a 3x3 matrix
 /// @param mat
-/// 3x3 matrix.
+/// 3x3 matrix
 /// @return
-/// Determinant value.
+/// Determinant value
 RETINIFY_API auto Determinant(const Mat3x3d &mat) noexcept -> double;
 
 /// @brief
-/// Transpose a 3x3 matrix.
+/// Transpose a 3x3 matrix
 /// @param mat
-/// 3x3 matrix.
+/// 3x3 matrix
 /// @return
-/// Transposed 3x3 matrix.
+/// Transposed 3x3 matrix
 RETINIFY_API auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d;
 
 /// @brief
-/// Multiply two 3x3 matrices.
+/// Multiply two 3x3 matrices
 /// @param mat1
-/// First 3x3 matrix.
+/// First 3x3 matrix
 /// @param mat2
-/// Second 3x3 matrix.
+/// Second 3x3 matrix
 /// @return
-/// 3x3 matrix.
+/// 3x3 matrix
 RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
 
 /// @brief
-/// Multiply a 3x3 matrix and a 3D vector.
+/// Multiply a 3x3 matrix and a 3D vector
 /// @param mat
-/// 3x3 matrix.
+/// 3x3 matrix
 /// @param vec
-/// 3D vector.
+/// 3D vector
 /// @return
-/// 3D vector.
+/// 3D vector
 RETINIFY_API auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d;
 
 /// @brief
-/// Scale a 3D vector by a scalar value.
+/// Scale a 3D vector by a scalar value
 /// @param vec
 /// 3D vector
 /// @param scale
 /// Scalar value
 /// @return
-/// Scaled 3D vector.
+/// Scaled 3D vector
 RETINIFY_API auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d;
 
 /// @brief
-/// Compute the length (magnitude) of a 3D vector.
+/// Compute the length (magnitude) of a 3D vector
 /// @param vec
-/// 3D vector.
+/// 3D vector
 /// @return
-/// Length value.
+/// Length value
 RETINIFY_API auto Length(const Vec3d &vec) noexcept -> double;
 
 /// @brief
-/// Normalize a 3D vector to unit length.
+/// Normalize a 3D vector to unit length
 /// @param vec
-/// 3D vector.
+/// 3D vector
 /// @return
-/// Normalized 3D vector.
+/// Normalized 3D vector
 RETINIFY_API auto Normalize(const Vec3d &vec) noexcept -> Vec3d;
 
 /// @brief
-/// Compute the dot product of two 3D vectors.
+/// Compute the dot product of two 3D vectors
 /// @param vec1
-/// First 3D vector.
+/// First 3D vector
 /// @param vec2
-/// Second 3D vector.
+/// Second 3D vector
 /// @return
-/// Dot product value.
+/// Dot product value
 RETINIFY_API auto Dot(const Vec3d &vec1, const Vec3d &vec2) noexcept -> double;
 
 /// @brief
-/// Compute the cross product of two 3D vectors.
+/// Compute the cross product of two 3D vectors
 /// @param vec1
-/// First 3D vector.
+/// First 3D vector
 /// @param vec2
-/// Second 3D vector.
+/// Second 3D vector
 /// @return
-/// Cross product vector.
+/// Cross product vector
 RETINIFY_API auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d;
 
 /// @brief
-/// Create a 3x3 skew-symmetric matrix from a 3D rotation vector.
+/// Create a 3x3 skew-symmetric matrix from a 3D rotation vector
 /// @param omega
-/// 3D rotation vector.
+/// 3D rotation vector
 /// @return
-/// 3x3 skew-symmetric matrix.
+/// 3x3 skew-symmetric matrix
 RETINIFY_API auto Hat(const Vec3d &omega) noexcept -> Mat3x3d;
 
 /// @brief
-/// Convert a 3x3 skew-symmetric matrix to a 3D rotation vector.
+/// Convert a 3x3 skew-symmetric matrix to a 3D rotation vector
 /// @param skew
-/// 3x3 skew-symmetric matrix.
+/// 3x3 skew-symmetric matrix
 /// @return
-/// 3D rotation vector.
+/// 3D rotation vector
 RETINIFY_API auto Vee(const Mat3x3d &skew) noexcept -> Vec3d;
 
 /// @brief
-/// Compute the matrix exponential of a 3D rotation vector.
+/// Compute the matrix exponential of a 3D rotation vector
 /// @param omega
-/// 3D rotation vector.
+/// 3D rotation vector
 /// @return
-/// 3x3 rotation matrix.
+/// 3x3 rotation matrix
 RETINIFY_API auto Exp(const Vec3d &omega) noexcept -> Mat3x3d;
 
 /// @brief
-/// Compute the matrix logarithm of a 3x3 rotation matrix.
+/// Compute the matrix logarithm of a 3x3 rotation matrix
 /// @param rotation
-/// 3x3 rotation matrix.
+/// 3x3 rotation matrix
 /// @return
-/// 3D rotation vector.
+/// 3D rotation vector
 RETINIFY_API auto Log(const Mat3x3d &rotation) noexcept -> Vec3d;
 
 /// @brief
-/// Camera intrinsic parameters with focal lengths, principal point, and skew.
+/// Camera intrinsic parameters with focal lengths, principal point, and skew
 struct Intrinsics
 {
     /// @brief
-    /// Focal length in x [pixels]
+    /// Focal length in x (in pixels)
     double fx{0};
     /// @brief
-    /// Focal length in y [pixels]
+    /// Focal length in y (in pixels)
     double fy{0};
     /// @brief
-    /// Principal point x-coordinate [pixels]
+    /// Principal point x-coordinate (in pixels)
     double cx{0};
     /// @brief
-    /// Principal point y-coordinate [pixels]
+    /// Principal point y-coordinate (in pixels)
     double cy{0};
     /// @brief
     /// Skew coefficient
@@ -243,7 +247,7 @@ struct Intrinsics
 };
 
 /// @brief
-/// Rational distortion model with 8 coefficients: (k1, k2, p1, p2, k3, k4, k5, k6).
+/// Rational distortion model with 8 coefficients: (k1, k2, p1, p2, k3, k4, k5, k6)
 struct Distortion
 {
     double k1{0};
@@ -269,7 +273,7 @@ struct Distortion
 };
 
 /// @brief
-/// Fisheye distortion model with 4 coefficients (k1, k2, k3, k4).
+/// Fisheye distortion model with 4 coefficients (k1, k2, k3, k4)
 struct DistortionFisheye
 {
     double k1{0};
@@ -279,7 +283,7 @@ struct DistortionFisheye
 };
 
 /// @brief
-/// Stereo camera calibration parameters.
+/// Stereo camera calibration parameters
 struct CalibrationParameters
 {
     /// @brief
@@ -301,16 +305,16 @@ struct CalibrationParameters
     /// Translation vector
     Vec3d translation{};
     /// @brief
-    /// Image width [pixels]
+    /// Image width (in pixels)
     std::uint32_t imageWidth{};
     /// @brief
-    /// Image height [pixels]
+    /// Image height (in pixels)
     std::uint32_t imageHeight{};
     /// @brief
-    /// Root mean square reprojection error [pixels]
+    /// Root mean square reprojection error (in pixels)
     double calibrationError{};
     /// @brief
-    /// Calibration timestamp in UNIX time [seconds since epoch, UTC]
+    /// Calibration timestamp (in seconds since epoch, UTC)
     std::int64_t calibrationTime{};
 
     [[nodiscard]] auto operator==(const CalibrationParameters &other) const noexcept -> bool
@@ -329,53 +333,53 @@ struct CalibrationParameters
 };
 
 /// @brief
-/// Undistort a 2D point using the given camera intrinsics and distortion parameters.
+/// Undistort a 2D point using the given camera intrinsics and distortion parameters
 /// @param intrinsics
-/// Camera intrinsic parameters.
+/// Camera intrinsic parameters
 /// @param distortion
-/// Distortion parameters.
+/// Distortion parameters
 /// @param pixel
-/// Distorted 2D point in pixel coordinates.
+/// Distorted 2D point (in pixel coordinates)
 /// @return
-/// Undistorted 2D point in pixel coordinates.
+/// Undistorted 2D point (in pixel coordinates)
 RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d;
 
 /// @brief
-/// Perform stereo rectification for a pair of cameras.
+/// Perform stereo rectification for a pair of cameras
 /// @param intrinsics1
-/// First camera intrinsics.
+/// First camera intrinsics
 /// @param distortion1
-/// First camera distortion.
+/// First camera distortion
 /// @param intrinsics2
-/// Second camera intrinsics.
+/// Second camera intrinsics
 /// @param distortion2
-/// Second camera distortion.
+/// Second camera distortion
 /// @param rotation
-/// Rotation from the first to the second camera.
+/// Rotation from the first to the second camera
 /// @param translation
-/// Translation from the first to the second camera.
+/// Translation from the first to the second camera
 /// @param imageWidth
-/// Image width in pixels.
+/// Image width (in pixels)
 /// @param imageHeight
-/// Image height in pixels.
+/// Image height (in pixels)
 /// @param rotation1
-/// Output rectification rotation for the first camera.
+/// Output rectification rotation for the first camera
 /// @param rotation2
-/// Output rectification rotation for the second camera.
+/// Output rectification rotation for the second camera
 /// @param projectionMatrix1
-/// Output projection matrix for the first camera.
+/// Output projection matrix for the first camera
 /// @param projectionMatrix2
-/// Output projection matrix for the second camera.
+/// Output projection matrix for the second camera
 /// @param mappingMatrix
-/// Output mapping matrix.
+/// Output mapping matrix
 /// @param alpha
 /// A free scaling parameter that controls cropping after rectification:
 /// 0 keeps only valid pixels (no black borders),
 /// 1 preserves the full original image (black borders included),
 /// values between 0 and 1 yield intermediate results,
-/// and -1 applies the default behavior.
+/// and -1 applies the default behavior
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful
 RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, //
                                 const Intrinsics &intrinsics2, const Distortion &distortion2, //
                                 const Mat3x3d &rotation, const Vec3d &translation,            //
@@ -385,7 +389,7 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
                                 Mat4x4d &mappingMatrix, double alpha) noexcept -> Status;
 
 /// @brief
-/// Initialize undistort and rectify maps for image remapping.
+/// Initialize undistort and rectify maps for image remapping
 /// @param intrinsics
 /// Camera intrinsics
 /// @param distortion
@@ -395,19 +399,19 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// @param projectionMatrix
 /// Projection matrix
 /// @param imageWidth
-/// Image width in pixels.
+/// Image width (in pixels)
 /// @param imageHeight
-/// Image height in pixels.
+/// Image height (in pixels)
 /// @param mapx
 /// Output map for x-coordinates
 /// @param mapxStride
-/// Stride (in bytes) of a row in mapx
+/// Stride of a row in mapx (in bytes)
 /// @param mapy
 /// Output map for y-coordinates
 /// @param mapyStride
-/// Stride (in bytes) of a row in mapy
+/// Stride of a row in mapy (in bytes)
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                                           const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
                                           std::uint32_t imageWidth, std::uint32_t imageHeight,        //
@@ -415,21 +419,21 @@ RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Di
                                           float *mapy, std::size_t mapyStride) noexcept -> Status;
 
 /// @brief
-/// Initialize identity maps for undistortion/rectification.
+/// Initialize identity maps for undistortion/rectification
 /// @param mapx
 /// Output map for x-coordinates
 /// @param mapxStride
-/// Stride (in bytes) of a row in mapx
+/// Stride of a row in mapx (in bytes)
 /// @param mapy
 /// Output map for y-coordinates
 /// @param mapyStride
-/// Stride (in bytes) of a row in mapy
+/// Stride of a row in mapy (in bytes)
 /// @param imageWidth
-/// Image width in pixels
+/// Image width (in pixels)
 /// @param imageHeight
-/// Image height in pixels
+/// Image height (in pixels)
 /// @return
-/// Operation status.
+/// A Status object that indicates whether the operation was successful
 RETINIFY_API auto InitIdentityMap(float *mapx, std::size_t mapxStride, //
                                   float *mapy, std::size_t mapyStride, //
                                   std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;

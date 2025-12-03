@@ -8,8 +8,8 @@
 namespace retinify
 {
 /// @brief
-/// Returns the retinify library version in semantic versioning format.
+/// Returns the retinify library version in semantic versioning format
 /// @return
-/// A string representing the retinify library version.
+/// A string representing the retinify library version
 RETINIFY_API auto Version() noexcept -> const char *;
 } // namespace retinify
