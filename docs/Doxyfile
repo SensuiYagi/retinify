@@ -948,6 +948,7 @@ INPUT                  = content/index.md \
                          content/tutorials.md \
                          content/python.md \
                          content/cpp.md \
+                         content/ros2.md \
                          ../retinify/include/retinify \
 
 # This tag can be used to specify the character encoding of the source files
