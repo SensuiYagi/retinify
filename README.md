@@ -11,7 +11,8 @@ ogo"
 [![UBUNTU 22.04](https://img.shields.io/badge/-UBUNTU%2022%2E04-orange?style=flat-square&logo=ubuntu&logoColor=white)](https://releases.ubuntu.com/jammy/)
 [![JETPACK 6](https://img.shields.io/badge/-JETPACK%206-76B900?style=flat-square&logo=nvidia&logoColor=white)](https://docs.nvidia.com/jetson/jetpack/index.html)
 [![Apache 2.0](https://img.shields.io/badge/Apache_2.0-blue?style=flat-square&logo=apache&label=)](https://www.apache.org/licenses/LICENSE-2.0)
-![C++](https://img.shields.io/badge/C++-E6B800?style=flat-square&logo=c%2B%2B&logoColor=white)  
+![C++](https://img.shields.io/badge/C++-royalblue?style=flat-square&logo=c%2B%2B&logoColor=white)
+![Python](https://img.shields.io/badge/Python-yellow?style=flat-square&logo=python&logoColor=white)  
 [![X](https://img.shields.io/badge/Follow-@retinify-blueviolet?style=flat-square&logo=x)](https://x.com/retinify)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-@retinify-blue?style=flat-square&logo=linkedin)](https://www.linkedin.com/company/retinify)
 [![YouTube](https://img.shields.io/badge/Watch-%40retinify-red?style=flat-square&logo=youtube)](https://www.youtube.com/@retinify_ai)
@@ -37,11 +38,79 @@ Retinify is an advanced AI-powered stereo vision library designed for robotics. 
 - 🪶 **Minimal Dependencies**: The pipeline depends only on CUDA Toolkit, cuDNN, and TensorRT, providing a lean and production-grade foundation.
 
 ## Basic Usage
-> [!IMPORTANT]
-> Retinify is independent of OpenCV and supports various image data types.
-  
+
 <details open>
-  <summary>Rectified Stereo Images</summary>
+  <summary>Rectified Stereo Images (🐍 Python)</summary>
+
+```python
+import retinify
+import numpy as np
+from PIL import Image
+
+# LOAD RECTIFIED STEREO INPUT IMAGES
+left = np.asarray(Image.open("path/to/left.png").convert("RGB"))
+right = np.asarray(Image.open("path/to/right.png").convert("RGB"))
+
+# CREATE STEREO MATCHING PIPELINE
+pipe = retinify.Pipeline()
+
+# INITIALIZE THE PIPELINE
+pipe.initialize(image_width=left.shape[1], 
+                image_height=left.shape[0])
+
+# EXECUTE STEREO MATCHING
+pipe.execute(left, right)
+
+# RETRIEVE DISPARITY
+disparity = pipe.retrieve_disparity()
+```
+
+</details>
+
+<details>
+  <summary>Non-Rectified Stereo Images (🐍 Python)</summary>
+
+> Using the calibration parameters, the pipeline performs undistortion, rectification, and 3D reprojection.
+  
+```python
+import retinify
+import numpy as np
+from PIL import Image
+
+# LOAD NON-RECTIFIED STEREO INPUT IMAGES
+left = np.asarray(Image.open("path/to/left.png").convert("RGB"))
+right = np.asarray(Image.open("path/to/right.png").convert("RGB"))
+
+# LOAD CALIBRATION PARAMETERS
+calib_params = retinify.load_calibration_parameters("path/to/calib.json")
+
+# CREATE STEREO MATCHING PIPELINE
+pipe = retinify.Pipeline()
+
+# INITIALIZE THE PIPELINE WITH CALIBRATION PARAMETERS
+pipe.initialize(image_width=left.shape[1], 
+                image_height=left.shape[0],
+                pixel_format=retinify.PixelFormat.RGB8,
+                depth_mode=retinify.DepthMode.ACCURATE,
+                calibration_parameters=calib_params)
+
+# EXECUTE STEREO MATCHING
+pipe.execute(left, right)
+
+# RETRIEVE DISPARITY
+disparity = pipe.retrieve_disparity()
+
+# RETRIEVE DEPTH
+depth = pipe.retrieve_depth()
+
+# RETRIEVE POINT CLOUD
+point_cloud = pipe.retrieve_point_cloud()
+```
+
+</details>
+
+<details>
+  <summary>Rectified Stereo Images (🧬 C++)</summary>
 
 ```cpp
 #include <retinify/retinify.hpp>
@@ -71,7 +140,7 @@ pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
 </details>
 
 <details>
-  <summary>Non-Rectified Stereo Images</summary>
+  <summary>Non-Rectified Stereo Images (🧬 C++)</summary>
 
 > Using the calibration parameters, the pipeline performs undistortion, rectification, and 3D reprojection.
   
@@ -126,8 +195,15 @@ pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
 - 🔨 [**Tutorials**](https://docs.retinify.ai/tutorials.html)  
   Hands-on examples to get you started with real-world use cases.
 
-- 🧩 [**API Reference**](https://docs.retinify.ai/api.html)  
-  Detailed class and function-level documentation for developers.
+- 🐍 [**Python Docs**](https://docs.retinify.ai/python.html)  
+  Python API documentation for retinify.
+
+- 🧬 [**C++ Docs**](https://docs.retinify.ai/cpp.html)  
+  C++ API documentation for retinify.
+
+- 🤖 [**ROS2 Docs**](https://docs.retinify.ai/ros2.html)  
+  ROS2 documentation for retinify.
+
 
 ## Supported Backends
 | 🎯 Target             | ⚙️ Env           | 📦 Status                                                               |
