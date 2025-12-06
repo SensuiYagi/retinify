@@ -946,7 +946,8 @@ WARN_LOGFILE           =
 INPUT                  = content/index.md \
                          content/installation.md \
                          content/tutorials.md \
-                         content/api.md \
+                         content/python.md \
+                         content/cpp.md \
                          ../retinify/include/retinify \
 
 # This tag can be used to specify the character encoding of the source files
