@@ -26,7 +26,7 @@ Python API documentation for retinify.
 - [C++ Docs](@ref cpp)  
 C++ API documentation for retinify.
 - [ROS2 Docs](@ref ros2)  
-ROS2 documentation for retinify.
+ROS2 integration guide for retinify.
 
 ### Contact
 For all inquiries, including support, collaboration, please contact:  

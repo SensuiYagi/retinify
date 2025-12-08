@@ -202,7 +202,7 @@ pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
   C++ API documentation for retinify.
 
 - 🤖 [**ROS2 Docs**](https://docs.retinify.ai/ros2.html)  
-  ROS2 documentation for retinify.
+  ROS2 integration guide for retinify.
 
 
 ## Supported Backends
