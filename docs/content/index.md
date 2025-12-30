@@ -19,14 +19,16 @@ Retinify is open-source, and the source code is publicly available:
 ### Getting started
 - [Install retinify](@ref installation)  
 Step-by-step instructions to build and install retinify.
+- [Demos](@ref demos)  
+Hands-on tutorial demonstrating retinify with OpenCV.
 - [Tutorials](@ref tutorials)  
-Hands-on examples to get you started with real-world use cases.
+Guides for using retinify in your projects.
 - [Python Docs](@ref python)  
 Python API documentation for retinify.
 - [C++ Docs](@ref cpp)  
 C++ API documentation for retinify.
 - [ROS2 Docs](@ref ros2)  
-ROS2 documentation for retinify.
+ROS2 integration guide for retinify.
 
 ### Contact
 For all inquiries, including support, collaboration, please contact:  

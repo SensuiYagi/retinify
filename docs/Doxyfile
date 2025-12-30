@@ -945,6 +945,7 @@ WARN_LOGFILE           =
 
 INPUT                  = content/index.md \
                          content/installation.md \
+                         content/demos.md \
                          content/tutorials.md \
                          content/python.md \
                          content/cpp.md \
