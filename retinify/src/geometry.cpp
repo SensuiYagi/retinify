@@ -59,7 +59,6 @@ auto Identity() noexcept -> Mat3x3d
 
 auto Determinant(const Mat3x3d &mat) noexcept -> double
 {
-    // det(R) = r00(r11 r22 - r12 r21) - r01(r10 r22 - r12 r20) + r02(r10 r21 - r11 r20)
     const auto &row0 = mat[0];
     const auto &row1 = mat[1];
     const auto &row2 = mat[2];
@@ -70,7 +69,6 @@ auto Determinant(const Mat3x3d &mat) noexcept -> double
 
 auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
 {
-    // (R^T)_{ij} = R_{ji}
     Mat3x3d transposed{};
     for (std::size_t row = 0; row < kMatSize; ++row)
     {
@@ -84,7 +82,6 @@ auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
 
 auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 {
-    // y = R x
     Vec3d result{};
     for (std::size_t row = 0; row < kMatSize; ++row)
     {
@@ -96,7 +93,6 @@ auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 
 auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 {
-    // C = A B,  c_{ij} = Σ_k a_{ik} b_{kj}
     Mat3x3d result{};
     for (std::size_t row = 0; row < kMatSize; ++row)
     {
@@ -116,13 +112,11 @@ auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d
 
 auto Length(const Vec3d &vec) noexcept -> double
 {
-    // ||v|| = sqrt(v·v)
     return std::sqrt(Dot(vec, vec));
 }
 
 auto Normalize(const Vec3d &vec) noexcept -> Vec3d
 {
-    // v / ||v||  (return zero if degenerate)
     const double n = Length(vec);
     if (n < kEpsilon)
     {
@@ -134,13 +128,11 @@ auto Normalize(const Vec3d &vec) noexcept -> Vec3d
 
 auto Dot(const Vec3d &vec1, const Vec3d &vec2) noexcept -> double
 {
-    // v1 · v2
     return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }
 
 auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d
 {
-    // v1 × v2
     return {vec1[1] * vec2[2] - vec1[2] * vec2[1], //
             vec1[2] * vec2[0] - vec1[0] * vec2[2], //
             vec1[0] * vec2[1] - vec1[1] * vec2[0]};
@@ -155,7 +147,6 @@ auto Hat(const Vec3d &omega) noexcept -> Mat3x3d
 
 auto Vee(const Mat3x3d &skew) noexcept -> Vec3d
 {
-    // Average opposing entries to mitigate numerical drift.
     return {0.5 * (skew[2][1] - skew[1][2]), //
             0.5 * (skew[0][2] - skew[2][0]), //
             0.5 * (skew[1][0] - skew[0][1])};
@@ -163,17 +154,12 @@ auto Vee(const Mat3x3d &skew) noexcept -> Vec3d
 
 auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
 {
-    // Rodrigues: R = I + coefA[ω]_x + coefB([ω]_x)^2
-    // coefA = sinθ/θ, coefB = (1−cosθ)/θ^2
-    // Use series expansion for small θ.
     const double thetaSquared = Dot(omega, omega);
     double coefA = 0.0;
     double coefB = 0.0;
 
     if (thetaSquared <= kEpsilon)
     {
-        // coefA = 1 − θ^2/6 + θ^4/120
-        // coefB = 1/2 − θ^2/24 + θ^4/720
         const double t2 = thetaSquared;
         const double t4 = t2 * t2;
         coefA = 1.0 - t2 / 6.0 + t4 / 120.0;
@@ -196,21 +182,17 @@ auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
 
 auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
 {
-    // θ from trace: cosθ = (tr(R) − 1)/2
     const double trace = rotation[0][0] + rotation[1][1] + rotation[2][2];
     const double cosTheta = std::clamp((trace - 1.0) * 0.5, -1.0, 1.0);
     const double theta = std::acos(cosTheta);
 
-    // v = (R − R^T)∨ = 2 sinθ · n  (skew vector)
     const Vec3d skewVector{rotation[2][1] - rotation[1][2], rotation[0][2] - rotation[2][0], rotation[1][0] - rotation[0][1]};
 
-    // Small angle: ω ≈ 1/2 v (since sinθ ≈ θ)
     if (theta < kEpsilon)
     {
         return Scale(skewVector, 0.5);
     }
 
-    // Near π: sinθ ~ 0, use diagonal-based axis extraction.
     if (std::fabs(kPi - theta) < 1e-6)
     {
         double ax = std::sqrt(std::max(0.0, (rotation[0][0] + 1.0) * 0.5));
@@ -236,13 +218,11 @@ auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
             ay = (rotation[1][2] + rotation[2][1]) / denom;
         }
 
-        // ω = θ n
         Vec3d axisCandidate{ax, ay, az};
         Vec3d axis = Normalize(axisCandidate);
         return Scale(axis, theta);
     }
 
-    // General case: n = v / ||v||, ω = θ n
     const double skewVectorNormSquared = Dot(skewVector, skewVector);
     const double skewVectorNorm = std::sqrt(std::max(0.0, skewVectorNormSquared));
     if (skewVectorNorm < kEpsilon)
@@ -267,10 +247,6 @@ auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, 
     constexpr int kIterationCount = 5;
     for (int iter = 0; iter < kIterationCount; ++iter)
     {
-        // Brown-Conrady rational model inversion with r^2 = x^2 + y^2:
-        // radialScale = (1 + k4 r^2 + k5 r^4 + k6 r^6) / (1 + k1 r^2 + k2 r^4 + k3 r^6)
-        // Delta tangential = (2 p1 xy + p2 (r^2 + 2 x^2),
-        //                     p1 (r^2 + 2 y^2) + 2 p2 xy)
         const double radiusSquared = Square(undistortedX) + Square(undistortedY);
         const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
         const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
@@ -299,12 +275,10 @@ namespace
 {
 [[nodiscard]] static auto ComputeRectifyingRotation(const Mat3x3d &rotation) noexcept -> Mat3x3d
 {
-    // Split relative rotation equally: R_rect = exp(-0.5 * log(R))
     const Vec3d omega = Log(rotation);
     return Exp(Scale(omega, -0.5));
 }
 
-// Orientation of the rectified stereo baseline.
 enum class BaselineAxis : std::uint8_t
 {
     X = 0,
@@ -318,7 +292,6 @@ enum class BaselineAxis : std::uint8_t
 
 [[nodiscard]] static auto DetermineDominantAxis(const Vec3d &translation) noexcept -> BaselineAxis
 {
-    // argmax_i |T_i|
     return (std::fabs(translation[0]) > std::fabs(translation[1])) ? BaselineAxis::X : BaselineAxis::Y;
 }
 
@@ -331,7 +304,6 @@ enum class BaselineAxis : std::uint8_t
 
 [[nodiscard]] static auto ComputeBaselineAlignment(const Vec3d &translation, BaselineAxis axis) noexcept -> Mat3x3d
 {
-    // Rotate translation onto +/- e_axis using axis = T x target, angle = acos(|T_axis| / ||T||)
     const int axisIndex = ToAxisIndex(axis);
     const double component = translation[axisIndex];
     const double length = Length(translation);
@@ -351,7 +323,6 @@ enum class BaselineAxis : std::uint8_t
 static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, //
                                   double newFocalLength, double width, double height) noexcept -> Point2d
 {
-    // Principal shift: c = (w-1, h-1)/2 - f * average( rectified_xy / rectified_z ) over undistorted corners
     const std::array<Point2d, 4> imageCorners{Point2d{0.0, 0.0}, Point2d{width - 1.0, 0.0}, Point2d{0.0, height - 1.0}, Point2d{width - 1.0, height - 1.0}};
 
     double accumulatedX = 0.0;
@@ -576,7 +547,6 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
 
 static auto ComputeProjectionMatrix(double focal, const Point2d &principal) noexcept -> Mat3x4d
 {
-    // P = [[f, 0, cx, 0], [0, f, cy, 0], [0, 0, 1, 0]]
     Mat3x4d projection{};
     projection[0][0] = focal;
     projection[0][2] = principal[0];
@@ -601,8 +571,6 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
         return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
     }
 
-    // Stereo rectification: rotation1 = R_align R_rect^T, rotation2 = R_align R_rect,
-    // share focal f = 0.5 * ((fx1+fx2) if axis=y else (fy1+fy2)), and set disparity scale via baseline
     const Mat3x3d rectifyingRotation = ComputeRectifyingRotation(rotation);
     const Vec3d rotatedTranslation = Multiply(rectifyingRotation, translation);
     const BaselineAxis dominantAxis = DetermineDominantAxis(rotatedTranslation);
