@@ -1,6 +1,6 @@
 @page python Python Docs
 
-@section introduction Introduction
+@section introduction_python Introduction
 
 The Python bindings of **retinify** are designed to use **NumPy arrays** as the primary input and output format.  
 Images loaded using libraries such as **Pillow** or **opencv-python** can be passed directly as `numpy.ndarray` objects.
@@ -12,14 +12,14 @@ A typical usage flow looks like this:
 - Provide left/right images and run stereo matching  
 - Retrieve disparity, depth, rectified images, or a point cloud as needed
 
-@section installation Install Python bindings
+@section installation_python Install Python bindings
 
 Install the Python bindings with:
 ```bash
 pip install git+https://github.com/retinify/retinify-python.git
 ```
 
-@section example Example usage
+@section example_python Example usage
 
 1. Stereo matching with rectified images
 ```python
