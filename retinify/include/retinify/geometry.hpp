@@ -402,39 +402,39 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// Image width (in pixels)
 /// @param imageHeight
 /// Image height (in pixels)
-/// @param mapx
+/// @param mapX
 /// Output map for x-coordinates
-/// @param mapxStride
-/// Stride of a row in mapx (in bytes)
-/// @param mapy
+/// @param mapXStride
+/// Stride of a row in mapX (in bytes)
+/// @param mapY
 /// Output map for y-coordinates
-/// @param mapyStride
-/// Stride of a row in mapy (in bytes)
+/// @param mapYStride
+/// Stride of a row in mapY (in bytes)
 /// @return
 /// A Status object that indicates whether the operation was successful
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                                           const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
                                           std::uint32_t imageWidth, std::uint32_t imageHeight,        //
-                                          float *mapx, std::size_t mapxStride,                        //
-                                          float *mapy, std::size_t mapyStride) noexcept -> Status;
+                                          float *mapX, std::size_t mapXStride,                        //
+                                          float *mapY, std::size_t mapYStride) noexcept -> Status;
 
 /// @brief
 /// Initialize identity maps for undistortion/rectification
-/// @param mapx
+/// @param mapX
 /// Output map for x-coordinates
-/// @param mapxStride
-/// Stride of a row in mapx (in bytes)
-/// @param mapy
+/// @param mapXStride
+/// Stride of a row in mapX (in bytes)
+/// @param mapY
 /// Output map for y-coordinates
-/// @param mapyStride
-/// Stride of a row in mapy (in bytes)
+/// @param mapYStride
+/// Stride of a row in mapY (in bytes)
 /// @param imageWidth
 /// Image width (in pixels)
 /// @param imageHeight
 /// Image height (in pixels)
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto InitIdentityMap(float *mapx, std::size_t mapxStride, //
-                                  float *mapy, std::size_t mapyStride, //
+RETINIFY_API auto InitIdentityMap(float *mapX, std::size_t mapXStride, //
+                                  float *mapY, std::size_t mapYStride, //
                                   std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;
 } // namespace retinify
