@@ -105,7 +105,7 @@ auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
     return result;
 }
 
-auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d
+auto Multiply(const Vec3d &vec, double scale) noexcept -> Vec3d
 {
     return {vec[0] * scale, vec[1] * scale, vec[2] * scale};
 }
@@ -138,23 +138,23 @@ auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d
             vec1[0] * vec2[1] - vec1[1] * vec2[0]};
 }
 
-auto Hat(const Vec3d &omega) noexcept -> Mat3x3d
+auto Hat(const Vec3d &vec) noexcept -> Mat3x3d
 {
-    return {{{0.0, -omega[2], omega[1]}, //
-             {omega[2], 0.0, -omega[0]}, //
-             {-omega[1], omega[0], 0.0}}};
+    return {{{0.0, -vec[2], vec[1]}, //
+             {vec[2], 0.0, -vec[0]}, //
+             {-vec[1], vec[0], 0.0}}};
 }
 
-auto Vee(const Mat3x3d &skew) noexcept -> Vec3d
+auto Vee(const Mat3x3d &mat) noexcept -> Vec3d
 {
-    return {0.5 * (skew[2][1] - skew[1][2]), //
-            0.5 * (skew[0][2] - skew[2][0]), //
-            0.5 * (skew[1][0] - skew[0][1])};
+    return {0.5 * (mat[2][1] - mat[1][2]), //
+            0.5 * (mat[0][2] - mat[2][0]), //
+            0.5 * (mat[1][0] - mat[0][1])};
 }
 
-auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
+auto Exp(const Vec3d &vec) noexcept -> Mat3x3d
 {
-    const double thetaSquared = Dot(omega, omega);
+    const double thetaSquared = Dot(vec, vec);
     double coefA = 0.0;
     double coefB = 0.0;
 
@@ -171,7 +171,7 @@ auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
         coefA = std::sin(theta) / theta;
         coefB = (1.0 - std::cos(theta)) / thetaSquared;
     }
-    const Mat3x3d skew = Hat(omega);
+    const Mat3x3d skew = Hat(vec);
     const Mat3x3d skewSquared = Multiply(skew, skew);
 
     Mat3x3d rotation = Identity();
@@ -180,47 +180,47 @@ auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
     return rotation;
 }
 
-auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
+auto Log(const Mat3x3d &mat) noexcept -> Vec3d
 {
-    const double trace = rotation[0][0] + rotation[1][1] + rotation[2][2];
+    const double trace = mat[0][0] + mat[1][1] + mat[2][2];
     const double cosTheta = std::clamp((trace - 1.0) * 0.5, -1.0, 1.0);
     const double theta = std::acos(cosTheta);
 
-    const Vec3d skewVector{rotation[2][1] - rotation[1][2], rotation[0][2] - rotation[2][0], rotation[1][0] - rotation[0][1]};
+    const Vec3d skewVector{mat[2][1] - mat[1][2], mat[0][2] - mat[2][0], mat[1][0] - mat[0][1]};
 
     if (theta < kEpsilon)
     {
-        return Scale(skewVector, 0.5);
+        return Multiply(skewVector, 0.5);
     }
 
     if (std::fabs(kPi - theta) < 1e-6)
     {
-        double ax = std::sqrt(std::max(0.0, (rotation[0][0] + 1.0) * 0.5));
-        double ay = std::sqrt(std::max(0.0, (rotation[1][1] + 1.0) * 0.5));
-        double az = std::sqrt(std::max(0.0, (rotation[2][2] + 1.0) * 0.5));
+        double ax = std::sqrt(std::max(0.0, (mat[0][0] + 1.0) * 0.5));
+        double ay = std::sqrt(std::max(0.0, (mat[1][1] + 1.0) * 0.5));
+        double az = std::sqrt(std::max(0.0, (mat[2][2] + 1.0) * 0.5));
 
         if (ax >= ay && ax >= az)
         {
             const double denom = 4.0 * std::max(ax, kEpsilon);
-            ay = (rotation[0][1] + rotation[1][0]) / denom;
-            az = (rotation[0][2] + rotation[2][0]) / denom;
+            ay = (mat[0][1] + mat[1][0]) / denom;
+            az = (mat[0][2] + mat[2][0]) / denom;
         }
         else if (ay >= ax && ay >= az)
         {
             const double denom = 4.0 * std::max(ay, kEpsilon);
-            ax = (rotation[0][1] + rotation[1][0]) / denom;
-            az = (rotation[1][2] + rotation[2][1]) / denom;
+            ax = (mat[0][1] + mat[1][0]) / denom;
+            az = (mat[1][2] + mat[2][1]) / denom;
         }
         else
         {
             const double denom = 4.0 * std::max(az, kEpsilon);
-            ax = (rotation[0][2] + rotation[2][0]) / denom;
-            ay = (rotation[1][2] + rotation[2][1]) / denom;
+            ax = (mat[0][2] + mat[2][0]) / denom;
+            ay = (mat[1][2] + mat[2][1]) / denom;
         }
 
         Vec3d axisCandidate{ax, ay, az};
         Vec3d axis = Normalize(axisCandidate);
-        return Scale(axis, theta);
+        return Multiply(axis, theta);
     }
 
     const double skewVectorNormSquared = Dot(skewVector, skewVector);
@@ -230,7 +230,7 @@ auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
         return {0.0, 0.0, 0.0};
     }
     const double scale = theta / skewVectorNorm;
-    return Scale(skewVector, scale);
+    return Multiply(skewVector, scale);
 }
 
 auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d
@@ -276,7 +276,7 @@ namespace
 [[nodiscard]] static auto ComputeRectifyingRotation(const Mat3x3d &rotation) noexcept -> Mat3x3d
 {
     const Vec3d omega = Log(rotation);
-    return Exp(Scale(omega, -0.5));
+    return Exp(Multiply(omega, -0.5));
 }
 
 enum class BaselineAxis : std::uint8_t
@@ -317,7 +317,7 @@ enum class BaselineAxis : std::uint8_t
     const double arg = std::clamp(std::fabs(component) / length, -1.0, 1.0);
     const double angle = std::acos(arg);
     const double scale = angle / crossLength;
-    return Exp(Scale(cross, scale));
+    return Exp(Multiply(cross, scale));
 }
 
 static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, //

@@ -139,14 +139,14 @@ RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept ->
 RETINIFY_API auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d;
 
 /// @brief
-/// Scale a 3D vector by a scalar value
+/// Multiply a 3D vector by a scalar value
 /// @param vec
 /// 3D vector
 /// @param scale
 /// Scalar value
 /// @return
-/// Scaled 3D vector
-RETINIFY_API auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d;
+/// 3D vector
+RETINIFY_API auto Multiply(const Vec3d &vec, double scale) noexcept -> Vec3d;
 
 /// @brief
 /// Compute the length (magnitude) of a 3D vector
@@ -186,35 +186,35 @@ RETINIFY_API auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d;
 
 /// @brief
 /// Create a 3x3 skew-symmetric matrix from a 3D rotation vector
-/// @param omega
+/// @param vec
 /// 3D rotation vector
 /// @return
 /// 3x3 skew-symmetric matrix
-RETINIFY_API auto Hat(const Vec3d &omega) noexcept -> Mat3x3d;
+RETINIFY_API auto Hat(const Vec3d &vec) noexcept -> Mat3x3d;
 
 /// @brief
 /// Convert a 3x3 skew-symmetric matrix to a 3D rotation vector
-/// @param skew
+/// @param mat
 /// 3x3 skew-symmetric matrix
 /// @return
 /// 3D rotation vector
-RETINIFY_API auto Vee(const Mat3x3d &skew) noexcept -> Vec3d;
+RETINIFY_API auto Vee(const Mat3x3d &mat) noexcept -> Vec3d;
 
 /// @brief
 /// Compute the matrix exponential of a 3D rotation vector
-/// @param omega
+/// @param vec
 /// 3D rotation vector
 /// @return
 /// 3x3 rotation matrix
-RETINIFY_API auto Exp(const Vec3d &omega) noexcept -> Mat3x3d;
+RETINIFY_API auto Exp(const Vec3d &vec) noexcept -> Mat3x3d;
 
 /// @brief
 /// Compute the matrix logarithm of a 3x3 rotation matrix
-/// @param rotation
+/// @param mat
 /// 3x3 rotation matrix
 /// @return
 /// 3D rotation vector
-RETINIFY_API auto Log(const Mat3x3d &rotation) noexcept -> Vec3d;
+RETINIFY_API auto Log(const Mat3x3d &mat) noexcept -> Vec3d;
 
 /// @brief
 /// Camera intrinsic parameters with focal lengths, principal point, and skew
