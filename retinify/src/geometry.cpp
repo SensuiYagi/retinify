@@ -14,7 +14,8 @@ namespace
 {
 constexpr inline double kEpsilon = 1e-12;
 constexpr inline double kPi = 3.141592653589793;
-constexpr inline std::size_t kMatSize = 3;
+constexpr inline std::size_t kMat33RowCount = 3;
+constexpr inline std::size_t kMat33ColCount = 3;
 
 [[nodiscard]] double Square(double value) noexcept
 {
@@ -54,9 +55,9 @@ auto Determinant(const Mat3x3d &mat) noexcept -> double
 auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
 {
     Mat3x3d transposed{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             transposed[row][col] = mat[col][row];
         }
@@ -67,9 +68,9 @@ auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
 auto Add(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 {
     Mat3x3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             result[row][col] = mat1[row][col] + mat2[row][col];
         }
@@ -80,7 +81,7 @@ auto Add(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 {
     Vec3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
         const auto &matRow = mat[row];
         result[row] = matRow[0] * vec[0] + matRow[1] * vec[1] + matRow[2] * vec[2];
@@ -91,10 +92,10 @@ auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 {
     Mat3x3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
         const auto &rowValues = mat1[row];
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             result[row][col] = rowValues[0] * mat2[0][col] + rowValues[1] * mat2[1][col] + rowValues[2] * mat2[2][col];
         }
@@ -105,9 +106,9 @@ auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 auto Multiply(const Mat3x3d &mat, double scale) noexcept -> Mat3x3d
 {
     Mat3x3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             result[row][col] = mat[row][col] * scale;
         }
@@ -203,7 +204,7 @@ auto Log(const Mat3x3d &mat) noexcept -> Vec3d
         return Multiply(skewVector, 0.5);
     }
 
-    if (std::fabs(kPi - theta) < 1e-6)
+    if (std::fabs(kPi - theta) < kEpsilon)
     {
         double ax = std::sqrt(std::max(0.0, (mat[0][0] + 1.0) * 0.5));
         double ay = std::sqrt(std::max(0.0, (mat[1][1] + 1.0) * 0.5));
