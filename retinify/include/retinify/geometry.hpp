@@ -119,14 +119,14 @@ RETINIFY_API auto Determinant(const Mat3x3d &mat) noexcept -> double;
 RETINIFY_API auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d;
 
 /// @brief
-/// Multiply two 3x3 matrices
+/// Add two 3x3 matrices
 /// @param mat1
 /// First 3x3 matrix
 /// @param mat2
 /// Second 3x3 matrix
 /// @return
 /// 3x3 matrix
-RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
+RETINIFY_API auto Add(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
 
 /// @brief
 /// Multiply a 3x3 matrix and a 3D vector
@@ -137,6 +137,26 @@ RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept ->
 /// @return
 /// 3D vector
 RETINIFY_API auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d;
+
+/// @brief
+/// Multiply two 3x3 matrices
+/// @param mat1
+/// First 3x3 matrix
+/// @param mat2
+/// Second 3x3 matrix
+/// @return
+/// 3x3 matrix
+RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
+
+/// @brief
+/// Multiply a 3x3 matrix by a scalar value
+/// @param mat
+/// 3x3 matrix
+/// @param scale
+/// Scalar value
+/// @return
+/// 3x3 matrix
+RETINIFY_API auto Multiply(const Mat3x3d &mat, double scale) noexcept -> Mat3x3d;
 
 /// @brief
 /// Multiply a 3D vector by a scalar value
@@ -338,11 +358,23 @@ struct CalibrationParameters
 /// Camera intrinsic parameters
 /// @param distortion
 /// Distortion parameters
-/// @param pixel
+/// @param point
 /// Distorted 2D point (in pixel coordinates)
 /// @return
-/// Undistorted 2D point (in pixel coordinates)
-RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d;
+/// Undistorted 2D point (normalized image coordinates)
+RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d;
+
+/// @brief
+/// Distort a normalized 2D point using the given camera intrinsics and distortion parameters
+/// @param intrinsics
+/// Camera intrinsic parameters
+/// @param distortion
+/// Distortion parameters
+/// @param point
+/// Undistorted 2D point (normalized image coordinates)
+/// @return
+/// Distorted 2D point (in pixel coordinates)
+RETINIFY_API auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d;
 
 /// @brief
 /// Perform stereo rectification for a pair of cameras
