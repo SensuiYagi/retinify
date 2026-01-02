@@ -187,25 +187,19 @@ pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
 </details>
 
 ## Getting Started
-📖 [**retinify documentation**](https://docs.retinify.ai/) — Developer guide and API reference.
+📖 [**retinify documentation**](https://docs.retinify.ai/)  
 
 - 📥 [**Installation Guide**](https://docs.retinify.ai/installation.html)  
-  Step-by-step guide to build and install retinify.
 
 - 🎬 [**Demos**](https://docs.retinify.ai/demos.html)  
-  Hands-on tutorial demonstrating retinify with OpenCV.
 
 - 🔨 [**Tutorials**](https://docs.retinify.ai/tutorials.html)  
-  Guides for using retinify in your projects.
 
 - 🐍 [**Python Docs**](https://docs.retinify.ai/python.html)  
-  Python API documentation for retinify.
 
 - 🧬 [**C++ Docs**](https://docs.retinify.ai/cpp.html)  
-  C++ API documentation for retinify.
 
 - 🤖 [**ROS2 Docs**](https://docs.retinify.ai/ros2.html)  
-  ROS2 integration guide for retinify.
 
 
 ## Supported Backends
