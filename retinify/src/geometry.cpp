@@ -14,27 +14,17 @@ namespace
 {
 constexpr inline double kEpsilon = 1e-12;
 constexpr inline double kPi = 3.141592653589793;
-constexpr inline std::size_t kMatSize = 3;
+constexpr inline std::size_t kMat33RowCount = 3;
+constexpr inline std::size_t kMat33ColCount = 3;
 
-[[nodiscard]] constexpr double Square(double value) noexcept
+[[nodiscard]] double Square(double value) noexcept
 {
     return value * value;
 }
 
-inline void AccumulateScaledMatrix(Mat3x3d &target, const Mat3x3d &addend, double scale) noexcept
+[[nodiscard]] double Reciprocal(double value, double fallback) noexcept
 {
-    for (std::size_t row = 0; row < kMatSize; ++row)
-    {
-        for (std::size_t col = 0; col < kMatSize; ++col)
-        {
-            target[row][col] += addend[row][col] * scale;
-        }
-    }
-}
-
-[[nodiscard]] constexpr bool IsBorderIndex(int index, int lastIndex) noexcept
-{
-    return index == 0 || index == lastIndex;
+    return (std::fabs(value) > kEpsilon) ? (1.0 / value) : fallback;
 }
 
 [[nodiscard]] constexpr double EvaluateRadialPolynomial(double radiusSquared, double k1, double k2, double k3) noexcept
@@ -42,11 +32,6 @@ inline void AccumulateScaledMatrix(Mat3x3d &target, const Mat3x3d &addend, doubl
     const double radiusFourth = radiusSquared * radiusSquared;
     const double radiusSixth = radiusFourth * radiusSquared;
     return 1.0 + k1 * radiusSquared + k2 * radiusFourth + k3 * radiusSixth;
-}
-
-[[nodiscard]] double Reciprocal(double value, double fallback) noexcept
-{
-    return (std::fabs(value) > kEpsilon) ? (1.0 / value) : fallback;
 }
 } // namespace
 
@@ -59,7 +44,6 @@ auto Identity() noexcept -> Mat3x3d
 
 auto Determinant(const Mat3x3d &mat) noexcept -> double
 {
-    // det(R) = r00(r11 r22 - r12 r21) - r01(r10 r22 - r12 r20) + r02(r10 r21 - r11 r20)
     const auto &row0 = mat[0];
     const auto &row1 = mat[1];
     const auto &row2 = mat[2];
@@ -70,11 +54,10 @@ auto Determinant(const Mat3x3d &mat) noexcept -> double
 
 auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
 {
-    // (R^T)_{ij} = R_{ji}
     Mat3x3d transposed{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             transposed[row][col] = mat[col][row];
         }
@@ -82,11 +65,23 @@ auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
     return transposed;
 }
 
+auto Add(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
+{
+    Mat3x3d result{};
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
+    {
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
+        {
+            result[row][col] = mat1[row][col] + mat2[row][col];
+        }
+    }
+    return result;
+}
+
 auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 {
-    // y = R x
     Vec3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
         const auto &matRow = mat[row];
         result[row] = matRow[0] * vec[0] + matRow[1] * vec[1] + matRow[2] * vec[2];
@@ -96,12 +91,11 @@ auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d
 
 auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
 {
-    // C = A B,  c_{ij} = Σ_k a_{ik} b_{kj}
     Mat3x3d result{};
-    for (std::size_t row = 0; row < kMatSize; ++row)
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
     {
         const auto &rowValues = mat1[row];
-        for (std::size_t col = 0; col < kMatSize; ++col)
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
         {
             result[row][col] = rowValues[0] * mat2[0][col] + rowValues[1] * mat2[1][col] + rowValues[2] * mat2[2][col];
         }
@@ -109,20 +103,31 @@ auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d
     return result;
 }
 
-auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d
+auto Multiply(const Mat3x3d &mat, double scale) noexcept -> Mat3x3d
+{
+    Mat3x3d result{};
+    for (std::size_t row = 0; row < kMat33RowCount; ++row)
+    {
+        for (std::size_t col = 0; col < kMat33ColCount; ++col)
+        {
+            result[row][col] = mat[row][col] * scale;
+        }
+    }
+    return result;
+}
+
+auto Multiply(const Vec3d &vec, double scale) noexcept -> Vec3d
 {
     return {vec[0] * scale, vec[1] * scale, vec[2] * scale};
 }
 
 auto Length(const Vec3d &vec) noexcept -> double
 {
-    // ||v|| = sqrt(v·v)
     return std::sqrt(Dot(vec, vec));
 }
 
 auto Normalize(const Vec3d &vec) noexcept -> Vec3d
 {
-    // v / ||v||  (return zero if degenerate)
     const double n = Length(vec);
     if (n < kEpsilon)
     {
@@ -134,46 +139,38 @@ auto Normalize(const Vec3d &vec) noexcept -> Vec3d
 
 auto Dot(const Vec3d &vec1, const Vec3d &vec2) noexcept -> double
 {
-    // v1 · v2
     return vec1[0] * vec2[0] + vec1[1] * vec2[1] + vec1[2] * vec2[2];
 }
 
 auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d
 {
-    // v1 × v2
     return {vec1[1] * vec2[2] - vec1[2] * vec2[1], //
             vec1[2] * vec2[0] - vec1[0] * vec2[2], //
             vec1[0] * vec2[1] - vec1[1] * vec2[0]};
 }
 
-auto Hat(const Vec3d &omega) noexcept -> Mat3x3d
+auto Hat(const Vec3d &vec) noexcept -> Mat3x3d
 {
-    return {{{0.0, -omega[2], omega[1]}, //
-             {omega[2], 0.0, -omega[0]}, //
-             {-omega[1], omega[0], 0.0}}};
+    return {{{0.0, -vec[2], vec[1]}, //
+             {vec[2], 0.0, -vec[0]}, //
+             {-vec[1], vec[0], 0.0}}};
 }
 
-auto Vee(const Mat3x3d &skew) noexcept -> Vec3d
+auto Vee(const Mat3x3d &mat) noexcept -> Vec3d
 {
-    // Average opposing entries to mitigate numerical drift.
-    return {0.5 * (skew[2][1] - skew[1][2]), //
-            0.5 * (skew[0][2] - skew[2][0]), //
-            0.5 * (skew[1][0] - skew[0][1])};
+    return {0.5 * (mat[2][1] - mat[1][2]), //
+            0.5 * (mat[0][2] - mat[2][0]), //
+            0.5 * (mat[1][0] - mat[0][1])};
 }
 
-auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
+auto Exp(const Vec3d &vec) noexcept -> Mat3x3d
 {
-    // Rodrigues: R = I + coefA[ω]_x + coefB([ω]_x)^2
-    // coefA = sinθ/θ, coefB = (1−cosθ)/θ^2
-    // Use series expansion for small θ.
-    const double thetaSquared = Dot(omega, omega);
+    const double thetaSquared = Dot(vec, vec);
     double coefA = 0.0;
     double coefB = 0.0;
 
     if (thetaSquared <= kEpsilon)
     {
-        // coefA = 1 − θ^2/6 + θ^4/120
-        // coefB = 1/2 − θ^2/24 + θ^4/720
         const double t2 = thetaSquared;
         const double t4 = t2 * t2;
         coefA = 1.0 - t2 / 6.0 + t4 / 120.0;
@@ -185,64 +182,58 @@ auto Exp(const Vec3d &omega) noexcept -> Mat3x3d
         coefA = std::sin(theta) / theta;
         coefB = (1.0 - std::cos(theta)) / thetaSquared;
     }
-    const Mat3x3d skew = Hat(omega);
+    const Mat3x3d skew = Hat(vec);
     const Mat3x3d skewSquared = Multiply(skew, skew);
 
     Mat3x3d rotation = Identity();
-    AccumulateScaledMatrix(rotation, skew, coefA);
-    AccumulateScaledMatrix(rotation, skewSquared, coefB);
+    rotation = Add(rotation, Multiply(skew, coefA));
+    rotation = Add(rotation, Multiply(skewSquared, coefB));
     return rotation;
 }
 
-auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
+auto Log(const Mat3x3d &mat) noexcept -> Vec3d
 {
-    // θ from trace: cosθ = (tr(R) − 1)/2
-    const double trace = rotation[0][0] + rotation[1][1] + rotation[2][2];
+    const double trace = mat[0][0] + mat[1][1] + mat[2][2];
     const double cosTheta = std::clamp((trace - 1.0) * 0.5, -1.0, 1.0);
     const double theta = std::acos(cosTheta);
 
-    // v = (R − R^T)∨ = 2 sinθ · n  (skew vector)
-    const Vec3d skewVector{rotation[2][1] - rotation[1][2], rotation[0][2] - rotation[2][0], rotation[1][0] - rotation[0][1]};
+    const Vec3d skewVector{mat[2][1] - mat[1][2], mat[0][2] - mat[2][0], mat[1][0] - mat[0][1]};
 
-    // Small angle: ω ≈ 1/2 v (since sinθ ≈ θ)
     if (theta < kEpsilon)
     {
-        return Scale(skewVector, 0.5);
+        return Multiply(skewVector, 0.5);
     }
 
-    // Near π: sinθ ~ 0, use diagonal-based axis extraction.
-    if (std::fabs(kPi - theta) < 1e-6)
+    if (std::fabs(kPi - theta) < kEpsilon)
     {
-        double ax = std::sqrt(std::max(0.0, (rotation[0][0] + 1.0) * 0.5));
-        double ay = std::sqrt(std::max(0.0, (rotation[1][1] + 1.0) * 0.5));
-        double az = std::sqrt(std::max(0.0, (rotation[2][2] + 1.0) * 0.5));
+        double ax = std::sqrt(std::max(0.0, (mat[0][0] + 1.0) * 0.5));
+        double ay = std::sqrt(std::max(0.0, (mat[1][1] + 1.0) * 0.5));
+        double az = std::sqrt(std::max(0.0, (mat[2][2] + 1.0) * 0.5));
 
         if (ax >= ay && ax >= az)
         {
             const double denom = 4.0 * std::max(ax, kEpsilon);
-            ay = (rotation[0][1] + rotation[1][0]) / denom;
-            az = (rotation[0][2] + rotation[2][0]) / denom;
+            ay = (mat[0][1] + mat[1][0]) / denom;
+            az = (mat[0][2] + mat[2][0]) / denom;
         }
         else if (ay >= ax && ay >= az)
         {
             const double denom = 4.0 * std::max(ay, kEpsilon);
-            ax = (rotation[0][1] + rotation[1][0]) / denom;
-            az = (rotation[1][2] + rotation[2][1]) / denom;
+            ax = (mat[0][1] + mat[1][0]) / denom;
+            az = (mat[1][2] + mat[2][1]) / denom;
         }
         else
         {
             const double denom = 4.0 * std::max(az, kEpsilon);
-            ax = (rotation[0][2] + rotation[2][0]) / denom;
-            ay = (rotation[1][2] + rotation[2][1]) / denom;
+            ax = (mat[0][2] + mat[2][0]) / denom;
+            ay = (mat[1][2] + mat[2][1]) / denom;
         }
 
-        // ω = θ n
         Vec3d axisCandidate{ax, ay, az};
         Vec3d axis = Normalize(axisCandidate);
-        return Scale(axis, theta);
+        return Multiply(axis, theta);
     }
 
-    // General case: n = v / ||v||, ω = θ n
     const double skewVectorNormSquared = Dot(skewVector, skewVector);
     const double skewVectorNorm = std::sqrt(std::max(0.0, skewVectorNormSquared));
     if (skewVectorNorm < kEpsilon)
@@ -250,16 +241,16 @@ auto Log(const Mat3x3d &rotation) noexcept -> Vec3d
         return {0.0, 0.0, 0.0};
     }
     const double scale = theta / skewVectorNorm;
-    return Scale(skewVector, scale);
+    return Multiply(skewVector, scale);
 }
 
-auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d
+auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
 {
     const double invFocalX = Reciprocal(intrinsics.fx, 1.0);
     const double invFocalY = Reciprocal(intrinsics.fy, 1.0);
 
-    const double normalizedX = (pixel[0] - intrinsics.cx) * invFocalX;
-    const double normalizedY = (pixel[1] - intrinsics.cy) * invFocalY;
+    const double normalizedX = (point[0] - intrinsics.cx) * invFocalX;
+    const double normalizedY = (point[1] - intrinsics.cy) * invFocalY;
 
     double undistortedX = normalizedX;
     double undistortedY = normalizedY;
@@ -267,21 +258,11 @@ auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, 
     constexpr int kIterationCount = 5;
     for (int iter = 0; iter < kIterationCount; ++iter)
     {
-        // Brown-Conrady rational model inversion with r^2 = x^2 + y^2:
-        // radialScale = (1 + k4 r^2 + k5 r^4 + k6 r^6) / (1 + k1 r^2 + k2 r^4 + k3 r^6)
-        // Delta tangential = (2 p1 xy + p2 (r^2 + 2 x^2),
-        //                     p1 (r^2 + 2 y^2) + 2 p2 xy)
         const double radiusSquared = Square(undistortedX) + Square(undistortedY);
         const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
         const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
         const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
         const double radialScale = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
-        if (radialScale < 0.0)
-        {
-            undistortedX = normalizedX;
-            undistortedY = normalizedY;
-            break;
-        }
 
         const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
         const double undistortedXSquared = Square(undistortedX);
@@ -295,16 +276,37 @@ auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, 
     return {undistortedX, undistortedY};
 }
 
+auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
+{
+    const double undistortedX = point[0];
+    const double undistortedY = point[1];
+
+    const double radiusSquared = Square(undistortedX) + Square(undistortedY);
+    const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
+    const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
+    const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
+    const double radial = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
+
+    const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
+    const double undistortedXSquared = Square(undistortedX);
+    const double undistortedYSquared = Square(undistortedY);
+    const double deltaX = distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
+    const double deltaY = distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
+
+    const double distortedX = undistortedX * radial + deltaX;
+    const double distortedY = undistortedY * radial + deltaY;
+
+    return {distortedX * intrinsics.fx + intrinsics.cx, distortedY * intrinsics.fy + intrinsics.cy};
+}
+
 namespace
 {
 [[nodiscard]] static auto ComputeRectifyingRotation(const Mat3x3d &rotation) noexcept -> Mat3x3d
 {
-    // Split relative rotation equally: R_rect = exp(-0.5 * log(R))
     const Vec3d omega = Log(rotation);
-    return Exp(Scale(omega, -0.5));
+    return Exp(Multiply(omega, -0.5));
 }
 
-// Orientation of the rectified stereo baseline.
 enum class BaselineAxis : std::uint8_t
 {
     X = 0,
@@ -318,7 +320,6 @@ enum class BaselineAxis : std::uint8_t
 
 [[nodiscard]] static auto DetermineDominantAxis(const Vec3d &translation) noexcept -> BaselineAxis
 {
-    // argmax_i |T_i|
     return (std::fabs(translation[0]) > std::fabs(translation[1])) ? BaselineAxis::X : BaselineAxis::Y;
 }
 
@@ -331,7 +332,6 @@ enum class BaselineAxis : std::uint8_t
 
 [[nodiscard]] static auto ComputeBaselineAlignment(const Vec3d &translation, BaselineAxis axis) noexcept -> Mat3x3d
 {
-    // Rotate translation onto +/- e_axis using axis = T x target, angle = acos(|T_axis| / ||T||)
     const int axisIndex = ToAxisIndex(axis);
     const double component = translation[axisIndex];
     const double length = Length(translation);
@@ -345,13 +345,12 @@ enum class BaselineAxis : std::uint8_t
     const double arg = std::clamp(std::fabs(component) / length, -1.0, 1.0);
     const double angle = std::acos(arg);
     const double scale = angle / crossLength;
-    return Exp(Scale(cross, scale));
+    return Exp(Multiply(cross, scale));
 }
 
 static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, //
                                   double newFocalLength, double width, double height) noexcept -> Point2d
 {
-    // Principal shift: c = (w-1, h-1)/2 - f * average( rectified_xy / rectified_z ) over undistorted corners
     const std::array<Point2d, 4> imageCorners{Point2d{0.0, 0.0}, Point2d{width - 1.0, 0.0}, Point2d{0.0, height - 1.0}, Point2d{width - 1.0, height - 1.0}};
 
     double accumulatedX = 0.0;
@@ -386,6 +385,17 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
     return camera;
 }
 
+[[nodiscard]] static auto ComputeProjectionMatrix(double focalLength, const Point2d &principalPoint) noexcept -> Mat3x4d
+{
+    Mat3x4d projection{};
+    projection[0][0] = focalLength;
+    projection[0][2] = principalPoint[0];
+    projection[1][1] = focalLength;
+    projection[1][2] = principalPoint[1];
+    projection[2][2] = 1.0;
+    return projection;
+}
+
 [[nodiscard]] double ComputeSafeRatio(double numerator, double denominator) noexcept
 {
     if (std::fabs(denominator) <= kEpsilon)
@@ -398,6 +408,11 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
         return sign * std::numeric_limits<double>::infinity();
     }
     return numerator / denominator;
+}
+
+[[nodiscard]] constexpr bool IsBorderIndex(int index, int lastIndex) noexcept
+{
+    return index == 0 || index == lastIndex;
 }
 
 static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Distortion &distortion,           //
@@ -512,11 +527,11 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
     }
 }
 
-[[nodiscard]] static auto ComputeAlphaScale(double alpha,                                                                                        //
-                                            const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectificationRotation1, //
+[[nodiscard]] static auto ComputeAlphaScale(const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectificationRotation1, //
                                             const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rectificationRotation2, //
                                             double focalLength, const Point2d &principal1, const Point2d &principal2,                            //
-                                            std::uint32_t imageWidth, std::uint32_t imageHeight) noexcept -> double
+                                            std::uint32_t imageWidth, std::uint32_t imageHeight,                                                 //
+                                            double alpha) noexcept -> double
 {
     if (alpha < 0.0)
     {
@@ -573,18 +588,6 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
     }
     return scale;
 }
-
-static auto ComputeProjectionMatrix(double focal, const Point2d &principal) noexcept -> Mat3x4d
-{
-    // P = [[f, 0, cx, 0], [0, f, cy, 0], [0, 0, 1, 0]]
-    Mat3x4d projection{};
-    projection[0][0] = focal;
-    projection[0][2] = principal[0];
-    projection[1][1] = focal;
-    projection[1][2] = principal[1];
-    projection[2][2] = 1.0;
-    return projection;
-}
 } // namespace
 
 auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, //
@@ -601,8 +604,6 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
         return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
     }
 
-    // Stereo rectification: rotation1 = R_align R_rect^T, rotation2 = R_align R_rect,
-    // share focal f = 0.5 * ((fx1+fx2) if axis=y else (fy1+fy2)), and set disparity scale via baseline
     const Mat3x3d rectifyingRotation = ComputeRectifyingRotation(rotation);
     const Vec3d rotatedTranslation = Multiply(rectifyingRotation, translation);
     const BaselineAxis dominantAxis = DetermineDominantAxis(rotatedTranslation);
@@ -624,7 +625,7 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
 
     Point2d rectifiedPrincipal1 = principalAvg;
     Point2d rectifiedPrincipal2 = principalAvg;
-    const double alphaScale = ComputeAlphaScale(alpha, intrinsics1, distortion1, rotation1, intrinsics2, distortion2, rotation2, newFocalLength, rectifiedPrincipal1, rectifiedPrincipal2, imageWidth, imageHeight);
+    const double alphaScale = ComputeAlphaScale(intrinsics1, distortion1, rotation1, intrinsics2, distortion2, rotation2, newFocalLength, rectifiedPrincipal1, rectifiedPrincipal2, imageWidth, imageHeight, alpha);
     newFocalLength *= alphaScale;
 
     projectionMatrix1 = ComputeProjectionMatrix(newFocalLength, rectifiedPrincipal1);
@@ -708,27 +709,27 @@ auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &dis
             const Vec3d rectifiedPoint{rectifiedX, rectifiedY, 1.0};
             const Vec3d cameraPoint = Multiply(rotationInverse, rectifiedPoint);
 
-            const double inverseDepth = Reciprocal(cameraPoint[2], 0.0);
-            const double normalizedX = cameraPoint[0] * inverseDepth;
-            const double normalizedY = cameraPoint[1] * inverseDepth;
+            const double invDepth = Reciprocal(cameraPoint[2], 0.0);
+            const double undistortedX = cameraPoint[0] * invDepth;
+            const double undistortedY = cameraPoint[1] * invDepth;
 
-            const double radiusSquared = Square(normalizedX) + Square(normalizedY);
+            const double radiusSquared = Square(undistortedX) + Square(undistortedY);
             const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
             const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
             const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
             const double radialScale = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
 
-            const double twoNormalizedXY = 2.0 * normalizedX * normalizedY;
-            const double normalizedXSquared = Square(normalizedX);
-            const double normalizedYSquared = Square(normalizedY);
+            const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
+            const double undistortedXSquared = Square(undistortedX);
+            const double undistortedYSquared = Square(undistortedY);
 
-            const double distortedNormalizedX = normalizedX * radialScale + distortion.p1 * twoNormalizedXY + distortion.p2 * (radiusSquared + 2.0 * normalizedXSquared);
-            const double distortedNormalizedY = normalizedY * radialScale + distortion.p1 * (radiusSquared + 2.0 * normalizedYSquared) + distortion.p2 * twoNormalizedXY;
+            const double distortedX = undistortedX * radialScale + distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
+            const double distortedY = undistortedY * radialScale + distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
 
-            const double uDistorted = intrinsics.fx * distortedNormalizedX + intrinsics.skew * distortedNormalizedY + intrinsics.cx;
-            const double vDistorted = intrinsics.fy * distortedNormalizedY + intrinsics.cy;
-            mapXRow[u] = static_cast<float>(uDistorted);
-            mapYRow[u] = static_cast<float>(vDistorted);
+            const double pixelX = intrinsics.fx * distortedX + intrinsics.skew * distortedY + intrinsics.cx;
+            const double pixelY = intrinsics.fy * distortedY + intrinsics.cy;
+            mapXRow[u] = static_cast<float>(pixelX);
+            mapYRow[u] = static_cast<float>(pixelY);
         }
     }
 

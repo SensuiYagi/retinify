@@ -119,14 +119,14 @@ RETINIFY_API auto Determinant(const Mat3x3d &mat) noexcept -> double;
 RETINIFY_API auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d;
 
 /// @brief
-/// Multiply two 3x3 matrices
+/// Add two 3x3 matrices
 /// @param mat1
 /// First 3x3 matrix
 /// @param mat2
 /// Second 3x3 matrix
 /// @return
 /// 3x3 matrix
-RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
+RETINIFY_API auto Add(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
 
 /// @brief
 /// Multiply a 3x3 matrix and a 3D vector
@@ -139,14 +139,34 @@ RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept ->
 RETINIFY_API auto Multiply(const Mat3x3d &mat, const Vec3d &vec) noexcept -> Vec3d;
 
 /// @brief
-/// Scale a 3D vector by a scalar value
+/// Multiply two 3x3 matrices
+/// @param mat1
+/// First 3x3 matrix
+/// @param mat2
+/// Second 3x3 matrix
+/// @return
+/// 3x3 matrix
+RETINIFY_API auto Multiply(const Mat3x3d &mat1, const Mat3x3d &mat2) noexcept -> Mat3x3d;
+
+/// @brief
+/// Multiply a 3x3 matrix by a scalar value
+/// @param mat
+/// 3x3 matrix
+/// @param scale
+/// Scalar value
+/// @return
+/// 3x3 matrix
+RETINIFY_API auto Multiply(const Mat3x3d &mat, double scale) noexcept -> Mat3x3d;
+
+/// @brief
+/// Multiply a 3D vector by a scalar value
 /// @param vec
 /// 3D vector
 /// @param scale
 /// Scalar value
 /// @return
-/// Scaled 3D vector
-RETINIFY_API auto Scale(const Vec3d &vec, double scale) noexcept -> Vec3d;
+/// 3D vector
+RETINIFY_API auto Multiply(const Vec3d &vec, double scale) noexcept -> Vec3d;
 
 /// @brief
 /// Compute the length (magnitude) of a 3D vector
@@ -186,35 +206,35 @@ RETINIFY_API auto Cross(const Vec3d &vec1, const Vec3d &vec2) noexcept -> Vec3d;
 
 /// @brief
 /// Create a 3x3 skew-symmetric matrix from a 3D rotation vector
-/// @param omega
+/// @param vec
 /// 3D rotation vector
 /// @return
 /// 3x3 skew-symmetric matrix
-RETINIFY_API auto Hat(const Vec3d &omega) noexcept -> Mat3x3d;
+RETINIFY_API auto Hat(const Vec3d &vec) noexcept -> Mat3x3d;
 
 /// @brief
 /// Convert a 3x3 skew-symmetric matrix to a 3D rotation vector
-/// @param skew
+/// @param mat
 /// 3x3 skew-symmetric matrix
 /// @return
 /// 3D rotation vector
-RETINIFY_API auto Vee(const Mat3x3d &skew) noexcept -> Vec3d;
+RETINIFY_API auto Vee(const Mat3x3d &mat) noexcept -> Vec3d;
 
 /// @brief
 /// Compute the matrix exponential of a 3D rotation vector
-/// @param omega
+/// @param vec
 /// 3D rotation vector
 /// @return
 /// 3x3 rotation matrix
-RETINIFY_API auto Exp(const Vec3d &omega) noexcept -> Mat3x3d;
+RETINIFY_API auto Exp(const Vec3d &vec) noexcept -> Mat3x3d;
 
 /// @brief
 /// Compute the matrix logarithm of a 3x3 rotation matrix
-/// @param rotation
+/// @param mat
 /// 3x3 rotation matrix
 /// @return
 /// 3D rotation vector
-RETINIFY_API auto Log(const Mat3x3d &rotation) noexcept -> Vec3d;
+RETINIFY_API auto Log(const Mat3x3d &mat) noexcept -> Vec3d;
 
 /// @brief
 /// Camera intrinsic parameters with focal lengths, principal point, and skew
@@ -338,11 +358,23 @@ struct CalibrationParameters
 /// Camera intrinsic parameters
 /// @param distortion
 /// Distortion parameters
-/// @param pixel
+/// @param point
 /// Distorted 2D point (in pixel coordinates)
 /// @return
-/// Undistorted 2D point (in pixel coordinates)
-RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d;
+/// Undistorted 2D point (normalized image coordinates)
+RETINIFY_API auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d;
+
+/// @brief
+/// Distort a normalized 2D point using the given camera intrinsics and distortion parameters
+/// @param intrinsics
+/// Camera intrinsic parameters
+/// @param distortion
+/// Distortion parameters
+/// @param point
+/// Undistorted 2D point (normalized image coordinates)
+/// @return
+/// Distorted 2D point (in pixel coordinates)
+RETINIFY_API auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d;
 
 /// @brief
 /// Perform stereo rectification for a pair of cameras
@@ -402,39 +434,39 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// Image width (in pixels)
 /// @param imageHeight
 /// Image height (in pixels)
-/// @param mapx
+/// @param mapX
 /// Output map for x-coordinates
-/// @param mapxStride
-/// Stride of a row in mapx (in bytes)
-/// @param mapy
+/// @param mapXStride
+/// Stride of a row in mapX (in bytes)
+/// @param mapY
 /// Output map for y-coordinates
-/// @param mapyStride
-/// Stride of a row in mapy (in bytes)
+/// @param mapYStride
+/// Stride of a row in mapY (in bytes)
 /// @return
 /// A Status object that indicates whether the operation was successful
 RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
                                           const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
                                           std::uint32_t imageWidth, std::uint32_t imageHeight,        //
-                                          float *mapx, std::size_t mapxStride,                        //
-                                          float *mapy, std::size_t mapyStride) noexcept -> Status;
+                                          float *mapX, std::size_t mapXStride,                        //
+                                          float *mapY, std::size_t mapYStride) noexcept -> Status;
 
 /// @brief
 /// Initialize identity maps for undistortion/rectification
-/// @param mapx
+/// @param mapX
 /// Output map for x-coordinates
-/// @param mapxStride
-/// Stride of a row in mapx (in bytes)
-/// @param mapy
+/// @param mapXStride
+/// Stride of a row in mapX (in bytes)
+/// @param mapY
 /// Output map for y-coordinates
-/// @param mapyStride
-/// Stride of a row in mapy (in bytes)
+/// @param mapYStride
+/// Stride of a row in mapY (in bytes)
 /// @param imageWidth
 /// Image width (in pixels)
 /// @param imageHeight
 /// Image height (in pixels)
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto InitIdentityMap(float *mapx, std::size_t mapxStride, //
-                                  float *mapy, std::size_t mapyStride, //
+RETINIFY_API auto InitIdentityMap(float *mapX, std::size_t mapXStride, //
+                                  float *mapY, std::size_t mapYStride, //
                                   std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;
 } // namespace retinify

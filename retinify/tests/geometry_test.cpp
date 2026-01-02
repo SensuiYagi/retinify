@@ -91,6 +91,25 @@ TEST(GeometryTest, MultiplyWithIdentityPreservesMatrix)
     ExpectMatrixNear(retinify::Multiply(matrixA, identityMatrix), matrixA, kTolStrict);
 }
 
+TEST(GeometryTest, AddMatricesElementWise)
+{
+    const retinify::Mat3x3d matrixA{{{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}}};
+    const retinify::Mat3x3d matrixB{{{-1.0, 0.0, 1.0}, {0.5, -0.5, 2.0}, {3.0, -4.0, 0.0}}};
+    const retinify::Mat3x3d expected{{{0.0, 2.0, 4.0}, {4.5, 4.5, 8.0}, {10.0, 4.0, 9.0}}};
+
+    ExpectMatrixNear(retinify::Add(matrixA, matrixB), expected, kTolStrict);
+    ExpectMatrixNear(retinify::Add(matrixB, matrixA), expected, kTolStrict);
+}
+
+TEST(GeometryTest, MultiplyMatrixScalar)
+{
+    const retinify::Mat3x3d matrix{{{1.5, -2.0, 0.0}, {3.0, 0.5, -1.0}, {4.0, -3.0, 2.0}}};
+    const double scale = -2.0;
+    const retinify::Mat3x3d expected{{{-3.0, 4.0, 0.0}, {-6.0, -1.0, 2.0}, {-8.0, 6.0, -4.0}}};
+
+    ExpectMatrixNear(retinify::Multiply(matrix, scale), expected, kTolStrict);
+}
+
 TEST(GeometryTest, TransposeIsInvolution)
 {
     const retinify::Mat3x3d mat{{{0.0, 1.0, 2.0}, {3.0, 4.0, 5.0}, {6.0, 7.0, 8.0}}};
@@ -235,27 +254,6 @@ TEST(GeometryTest, LogHandlesPiRotation)
     EXPECT_NEAR(std::fabs(omega[0]), theta, kTolStrict);
     EXPECT_NEAR(omega[1], 0.0, kTolStrict);
     EXPECT_NEAR(omega[2], 0.0, kTolStrict);
-}
-
-auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &pixel) noexcept -> Point2d
-{
-    const double pixelX = pixel[0];
-    const double pixelY = pixel[1];
-    const double r2 = pixelX * pixelX + pixelY * pixelY;
-    const double r4 = r2 * r2;
-    const double r6 = r4 * r2;
-
-    const double radialNumerator = 1.0 + distortion.k1 * r2 + distortion.k2 * r4 + distortion.k3 * r6;
-    const double radialDenominator = 1.0 + distortion.k4 * r2 + distortion.k5 * r4 + distortion.k6 * r6;
-    const double radial = (std::fabs(radialDenominator) > kTolStrict) ? (radialNumerator / radialDenominator) : 1.0;
-
-    const double deltaX = 2.0 * distortion.p1 * pixelX * pixelY + distortion.p2 * (r2 + 2.0 * pixelX * pixelX);
-    const double deltaY = distortion.p1 * (r2 + 2.0 * pixelY * pixelY) + 2.0 * distortion.p2 * pixelX * pixelY;
-
-    const double distortedX = pixelX * radial + deltaX;
-    const double distortedY = pixelY * radial + deltaY;
-
-    return {distortedX * intrinsics.fx + intrinsics.cx, distortedY * intrinsics.fy + intrinsics.cy};
 }
 
 TEST(GeometryTest, UndistortPointWithFiveCoefficients)
