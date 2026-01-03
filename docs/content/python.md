@@ -1,27 +1,24 @@
 @page python Python Docs
 
-@section introduction_python Introduction
 
-The Python bindings of **retinify** are designed to use **NumPy arrays** as the primary input and output format.  
-Images loaded using libraries such as **Pillow** or **opencv-python** can be passed directly as `numpy.ndarray` objects.
-  
-A typical usage flow looks like this:
+## Installation
 
-- Load images as NumPy arrays  
-- Initialize a `Pipeline` with the desired image size, pixel format, depth mode, and calibration parameters  
-- Provide left/right images and run stereo matching  
-- Retrieve disparity, depth, rectified images, or a point cloud as needed
+First, follow the instructions in the [Installation](@ref installation) section to install retinify.  
+Then, install the Python bindings using:
 
-@section installation_python Install Python bindings
-
-Install the Python bindings with:
 ```bash
 pip install git+https://github.com/retinify/retinify-python.git
 ```
 
-@section example_python Example usage
 
-1. Stereo matching with rectified images
+## Writing Python code
+
+The Python bindings of retinify are designed to use **NumPy arrays** as the primary input and output format.  
+Images loaded using libraries such as **Pillow** or **opencv-python** can be passed directly as `numpy.ndarray` objects.
+
+
+To perform stereo matching with rectified stereo images, use the following code:  
+
 ```python
 import numpy as np
 from PIL import Image
@@ -31,7 +28,7 @@ from retinify import Pipeline
 left = np.asarray(Image.open("path/to/left.png").convert("RGB"))
 right = np.asarray(Image.open("path/to/right.png").convert("RGB"))
 
-# CREATE STEREO MATCHING PIPELINE
+# CREATE THE STEREO MATCHING PIPELINE
 pipe = Pipeline()
 
 # INITIALIZE THE PIPELINE
@@ -45,17 +42,13 @@ pipe.execute(left, right)
 disparity = pipe.retrieve_disparity()
 ```
 
-2. Colorizing and saving the disparity map
-```python
-from PIL import Image
-from retinify import colorize_disparity
+When initializing the pipeline, you can provide calibration parameters to enable the following features:
 
-disparity_color = colorize_disparity(disparity, max_disparity=128)
+- Distortion correction and rectification
+- Depth and point cloud generation
 
-Image.fromarray(disparity_color).save("disparity.png")
-```
+To perform stereo matching with non-rectified stereo images, use the following code:
 
-3. Stereo matching with non-rectified images and calibration parameters
 ```python
 import numpy as np
 from PIL import Image
@@ -80,6 +73,9 @@ pipe.initialize(image_width=left.shape[1],
 
 # EXECUTE STEREO MATCHING
 pipe.execute(left, right)
+
+# RETRIEVE RECTIFIED LEFT IMAGE
+left_rectified = pipe.retrieve_rectified_left_image()
 
 # RETRIEVE DISPARITY
 disparity = pipe.retrieve_disparity()

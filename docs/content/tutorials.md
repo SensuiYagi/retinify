@@ -1,16 +1,20 @@
 @page tutorials Tutorials
 
+
 ## 1. Overall Structure
 
 Retinify is designed by clearly separating the stereo processing pipeline into three phases:
 
-- **Initialize**: Initialization using parameters and input conditions  
-- **Execute**: GPU-based image processing and stereo matching  
-- **Retrieve**: Transferring result data from GPU to CPU  
+- **1. Initialize**: Initialization using parameters and input conditions  
+- **2. Execute**: GPU-based image processing and stereo matching  
+- **3. Retrieve**: Transferring result data from GPU to CPU  
 
 By separating initialization from per-frame execution, the runtime loop is kept minimal,
 enabling stable real-time processing on the GPU.
-This structure is shared across the Python, C++, and ROS2 APIs.
+This structure is shared across the Python, C++, and ROS2 APIs.  
+
+In C++, `retinify::Pipeline` handles these three phases.
+
 
 ### 1.1 Initialize
 
@@ -26,6 +30,7 @@ All data required for per-frame processing is prepared here, but no image proces
 
 In C++, `retinify::Pipeline.Initialize()` corresponds to this phase.  
 
+
 ### 1.2 Execute
 
 The Execute phase performs all per-frame processing on the GPU.
@@ -40,6 +45,7 @@ The CPU handles control flow only, while all image processing and computation ar
 
 In C++, `retinify::Pipeline.Execute()` corresponds to this phase.  
 
+
 ### 1.3 Retrieve
 
 The Retrieve phase transfers selected results from GPU to CPU.
@@ -53,13 +59,16 @@ Retrieve can be called selectively, depending on application requirements.
 
 In C++, `retinify::Pipeline.RetrieveDisparity()`, `retinify::Pipeline.RetrieveRectifiedImages()`, etc. correspond to this phase.  
 
+
 ### 1.4 Coordinate Systems
 
 Retinify uses the same coordinate system conventions as [OpenCV](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html).  
 
-![Coordinate Systems](https://docs.opencv.org/4.x/pinhole_camera_model.png)
+![Coordinate Systems](https://docs.opencv.org/4.x/pinhole_camera_model.png)  
+(Source: OpenCV Documentation, https://docs.opencv.org/4.x/)
 
-### 2. Using retinify
+
+## 2. Using retinify
 
 There are three options for using retinify:
 

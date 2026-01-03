@@ -17,7 +17,7 @@ Retinify is open-source, and the source code is publicly available:
 [![YouTube](https://img.shields.io/badge/Watch-%40retinify-red?style=flat-square&logo=youtube)](https://www.youtube.com/@retinify_ai)
 
 ### Getting started
-- [Install retinify](@ref installation)  
+- [Installation](@ref installation)  
 - [Demos](@ref demos)  
 - [Tutorials](@ref tutorials)  
 - [Python Docs](@ref python)  

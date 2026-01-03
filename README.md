@@ -120,10 +120,10 @@ point_cloud = pipe.retrieve_point_cloud()
 cv::Mat leftImage = cv::imread("path/to/left.png");
 cv::Mat rightImage = cv::imread("path/to/right.png");
 
-// PREPARE OUTPUT CONTAINER
+// PREPARE OUTPUT BUFFERS
 cv::Mat disparity = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 
-// CREATE STEREO MATCHING PIPELINE
+// CREATE THE STEREO MATCHING PIPELINE
 retinify::Pipeline pipeline;
 
 // INITIALIZE THE PIPELINE
@@ -152,7 +152,7 @@ pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
 cv::Mat leftImage = cv::imread("path/to/left.png");
 cv::Mat rightImage = cv::imread("path/to/right.png");
 
-// PREPARE OUTPUT CONTAINER
+// PREPARE OUTPUT BUFFERS
 cv::Mat disparity = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 cv::Mat depth = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 cv::Mat pointCloud = cv::Mat::zeros(leftImage.size(), CV_32FC3);
@@ -161,7 +161,7 @@ cv::Mat pointCloud = cv::Mat::zeros(leftImage.size(), CV_32FC3);
 retinify::CalibrationParameters calibParams;
 retinify::LoadCalibrationParameters("path/to/calib.json", calibParams);
 
-// CREATE STEREO MATCHING PIPELINE
+// CREATE THE STEREO MATCHING PIPELINE
 retinify::Pipeline pipeline;
 
 // INITIALIZE THE PIPELINE WITH CALIBRATION PARAMETERS
@@ -187,20 +187,25 @@ pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
 </details>
 
 ## Getting Started
-📖 [**retinify documentation**](https://docs.retinify.ai/)  
+📖 [**retinify documentation**](https://docs.retinify.ai/)
 
-- 📥 [**Installation Guide**](https://docs.retinify.ai/installation.html)  
+- 📥 [**Installation**](https://docs.retinify.ai/installation.html)  
+  Step-by-step installation instructions
 
 - 🎬 [**Demos**](https://docs.retinify.ai/demos.html)  
+  Hands-on examples using OpenCV
 
 - 🔨 [**Tutorials**](https://docs.retinify.ai/tutorials.html)  
+  Guided explanations of retinify concepts
 
 - 🐍 [**Python Docs**](https://docs.retinify.ai/python.html)  
+  Python API documentation
 
 - 🧬 [**C++ Docs**](https://docs.retinify.ai/cpp.html)  
+  C++ API documentation
 
 - 🤖 [**ROS2 Docs**](https://docs.retinify.ai/ros2.html)  
-
+  ROS2 integration reference
 
 ## Supported Backends
 | 🎯 Target             | ⚙️ Env           | 📦 Status                                                               |
