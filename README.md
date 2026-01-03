@@ -120,10 +120,10 @@ point_cloud = pipe.retrieve_point_cloud()
 cv::Mat leftImage = cv::imread("path/to/left.png");
 cv::Mat rightImage = cv::imread("path/to/right.png");
 
-// PREPARE OUTPUT CONTAINER
+// PREPARE OUTPUT BUFFERS
 cv::Mat disparity = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 
-// CREATE STEREO MATCHING PIPELINE
+// CREATE THE STEREO MATCHING PIPELINE
 retinify::Pipeline pipeline;
 
 // INITIALIZE THE PIPELINE
@@ -152,7 +152,7 @@ pipeline.RetrieveDisparity(disparity.ptr<float>(), disparity.step[0]);
 cv::Mat leftImage = cv::imread("path/to/left.png");
 cv::Mat rightImage = cv::imread("path/to/right.png");
 
-// PREPARE OUTPUT CONTAINER
+// PREPARE OUTPUT BUFFERS
 cv::Mat disparity = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 cv::Mat depth = cv::Mat::zeros(leftImage.size(), CV_32FC1);
 cv::Mat pointCloud = cv::Mat::zeros(leftImage.size(), CV_32FC3);
@@ -161,7 +161,7 @@ cv::Mat pointCloud = cv::Mat::zeros(leftImage.size(), CV_32FC3);
 retinify::CalibrationParameters calibParams;
 retinify::LoadCalibrationParameters("path/to/calib.json", calibParams);
 
-// CREATE STEREO MATCHING PIPELINE
+// CREATE THE STEREO MATCHING PIPELINE
 retinify::Pipeline pipeline;
 
 // INITIALIZE THE PIPELINE WITH CALIBRATION PARAMETERS
