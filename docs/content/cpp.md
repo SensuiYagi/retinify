@@ -36,7 +36,7 @@ target_link_libraries(${PROJECT_NAME} retinify::retinify)
 Note that retinify requires **GCC 11 or later**.
 
 
-## Writing C++ code with retinify
+## Writing C++ code
 
 The code in this section uses OpenCV's `cv::Mat` for image data.
 
