@@ -24,21 +24,21 @@ class RETINIFY_API Session
 {
   public:
     Session() noexcept = default;
-    ~Session() noexcept;
+    ~Session() noexcept = default;
     Session(const Session &) = delete;
     auto operator=(const Session &) noexcept -> Session & = delete;
     Session(Session &&other) noexcept = delete;
     auto operator=(Session &&other) noexcept -> Session & = delete;
-    [[nodiscard]] auto Initialize(const char *model_path) noexcept -> Status;
+    [[nodiscard]] auto Initialize(const char *modelPath) noexcept -> Status;
     [[nodiscard]] auto BindInput(const char *name, const Mat &mat) const noexcept -> Status;
     [[nodiscard]] auto BindOutput(const char *name, const Mat &mat) const noexcept -> Status;
     [[nodiscard]] auto Execute(Stream &stream) const noexcept -> Status;
 
   private:
 #ifdef BUILD_WITH_TENSORRT
-    nvinfer1::IRuntime *runtime_{nullptr};
-    nvinfer1::ICudaEngine *engine_{nullptr};
-    nvinfer1::IExecutionContext *context_{nullptr};
+    std::unique_ptr<nvinfer1::IRuntime> runtime_{};
+    std::unique_ptr<nvinfer1::ICudaEngine> engine_{};
+    std::unique_ptr<nvinfer1::IExecutionContext> context_{};
 #else
 #endif
 };
