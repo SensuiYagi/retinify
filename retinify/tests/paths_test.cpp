@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "retinify/paths.hpp"
+#include "retinify/status.hpp"
 
-#include <cstring>
 #include <filesystem>
 #include <gtest/gtest.h>
 
@@ -12,19 +12,18 @@ namespace retinify
 class PathTest : public ::testing::Test
 {
   protected:
-    void CheckPath(const char *path, bool shouldBeDirectory)
+    using PathResolver = Status (*)(std::filesystem::path &);
+
+    void CheckPath(const std::filesystem::path &path, bool shouldBeDirectory)
     {
-        ASSERT_NE(path, nullptr) << "Path pointer is nullptr.";
-        ASSERT_GT(std::strlen(path), 0u) << "Path string is empty.";
+        ASSERT_FALSE(path.empty()) << "Path is empty.";
 
         std::error_code errorCode;
-        const std::filesystem::path fsPath(path);
-
-        const bool exists = std::filesystem::exists(fsPath, errorCode);
+        const bool exists = std::filesystem::exists(path, errorCode);
         ASSERT_FALSE(errorCode) << "Error checking path existence: " << errorCode.message() << " for path: " << path;
         ASSERT_TRUE(exists) << "Path does not exist: " << path;
 
-        const auto status = std::filesystem::status(fsPath, errorCode);
+        const auto status = std::filesystem::status(path, errorCode);
         ASSERT_FALSE(errorCode) << "Error getting file status: " << errorCode.message() << " for path: " << path;
 
         if (shouldBeDirectory)
@@ -36,35 +35,38 @@ class PathTest : public ::testing::Test
             ASSERT_TRUE(std::filesystem::is_regular_file(status)) << "Path is not a regular file: " << path << " (actual type: " << static_cast<int>(status.type()) << ")";
         }
     }
+
+    void ExpectPath(PathResolver resolver, bool shouldBeDirectory)
+    {
+        std::filesystem::path path;
+        const Status status = resolver(path);
+        ASSERT_TRUE(status.IsOK()) << "Failed to resolve path.";
+        CheckPath(path, shouldBeDirectory);
+    }
 };
 
 TEST_F(PathTest, HomeDirectoryPath)
 {
-    CheckPath(HomeDirectoryPath(), true);
+    ExpectPath(HomeDirectoryPath, true);
 }
 
 TEST_F(PathTest, ConfigDirectoryPath)
 {
-    CheckPath(ConfigDirectoryPath(), true);
+    ExpectPath(ConfigDirectoryPath, true);
 }
 
 TEST_F(PathTest, CacheDirectoryPath)
 {
-    CheckPath(CacheDirectoryPath(), true);
+    ExpectPath(CacheDirectoryPath, true);
 }
 
 TEST_F(PathTest, DataDirectoryPath)
 {
-    CheckPath(DataDirectoryPath(), true);
+    ExpectPath(DataDirectoryPath, true);
 }
 
 TEST_F(PathTest, StateDirectoryPath)
 {
-    CheckPath(StateDirectoryPath(), true);
-}
-
-TEST_F(PathTest, StereoMatchingOnnxFilePath)
-{
-    CheckPath(StereoMatchingOnnxFilePath(), false);
+    ExpectPath(StateDirectoryPath, true);
 }
 } // namespace retinify

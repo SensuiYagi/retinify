@@ -15,121 +15,124 @@ namespace retinify
 {
 namespace
 {
-constexpr auto kConfigDirName = ".config/retinify";
-constexpr auto kCacheDirName = ".cache/retinify";
-constexpr auto kDataDirName = ".local/share/retinify";
-constexpr auto kStateDirName = ".local/state/retinify";
-
-static inline auto JoinPathWithVersion(const char *input1, const char *input2) -> const char *
+struct DirectoryInfo
 {
-    if (input1 == nullptr || input2 == nullptr)
-    {
-        return nullptr;
-    }
+    const char *environmentVariable;
+    const char *fallbackRelativeToHome;
+};
 
-    thread_local static std::string buffer;
+constexpr DirectoryInfo kConfigDirectoryInfo{"XDG_CONFIG_HOME", ".config"};
+constexpr DirectoryInfo kCacheDirectoryInfo{"XDG_CACHE_HOME", ".cache"};
+constexpr DirectoryInfo kDataDirectoryInfo{"XDG_DATA_HOME", ".local/share"};
+constexpr DirectoryInfo kStateDirectoryInfo{"XDG_STATE_HOME", ".local/state"};
 
-    std::filesystem::path result = std::filesystem::path(input1) / input2 / Version();
-    buffer = result.string();
+constexpr const char *kRetinifyDirName = "retinify";
 
-    return buffer.c_str();
-}
-
-static inline auto CreateDirectory(const char *path) -> bool
-{
-    if (path == nullptr || std::strlen(path) == 0)
-    {
-        return false;
-    }
-
-    std::error_code error;
-
-    const bool exists = std::filesystem::exists(path, error);
-    if (error)
-    {
-        return false;
-    }
-
-    if (exists)
-    {
-        const bool isDir = std::filesystem::is_directory(path, error);
-        return !error && isDir;
-    }
-
-    std::filesystem::create_directories(path, error);
-    return !error;
-}
-
-static inline auto ResolveUserDirectory(const char *relativePath, const char *errorMessage) noexcept -> const char *
+static inline auto GetUserDirectoryPath(const DirectoryInfo &info, std::filesystem::path &path) noexcept -> Status
 {
     try
     {
-        const char *homeDirectory = HomeDirectoryPath();
-        if (homeDirectory == nullptr)
+        std::filesystem::path baseDirectory;
+
+        const char *xdgValue = std::getenv(info.environmentVariable);
+        if (xdgValue != nullptr && std::strlen(xdgValue) != 0)
         {
-            return nullptr;
+            baseDirectory = std::filesystem::path(xdgValue);
+        }
+        else
+        {
+            std::filesystem::path homePath;
+            Status status = retinify::HomeDirectoryPath(homePath);
+            if (!status.IsOK())
+            {
+                path.clear();
+                return status;
+            }
+
+            baseDirectory = homePath / info.fallbackRelativeToHome;
         }
 
-        const char *fullPath = JoinPathWithVersion(homeDirectory, relativePath);
-        if (fullPath == nullptr || std::strlen(fullPath) == 0)
+        const char *version = retinify::Version();
+        if (version == nullptr || std::strlen(version) == 0)
         {
-            return nullptr;
+            retinify::LogError("Version string is null or empty.");
+            path.clear();
+            return Status(StatusCategory::RETINIFY, StatusCode::FAIL);
         }
 
-        if (CreateDirectory(fullPath))
+        const std::filesystem::path fullPath = baseDirectory / kRetinifyDirName / version;
+
+        std::error_code ec;
+        std::filesystem::create_directories(fullPath, ec);
+        if (ec)
         {
-            return fullPath;
+            retinify::LogError(ec.message().c_str());
+            path.clear();
+            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
         }
 
-        LogError(errorMessage);
+        path = fullPath;
+        return Status{};
     }
-    catch (std::exception &e)
+    catch (const std::exception &ex)
     {
-        LogError(e.what());
+        retinify::LogError(ex.what());
     }
     catch (...)
     {
-        LogFatal("An unknown error occurred.");
+        retinify::LogError("Unknown exception occurred.");
     }
 
-    return nullptr;
+    path.clear();
+    return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
 }
 } // namespace
 
-auto HomeDirectoryPath() noexcept -> const char *
+auto HomeDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    const char *path = std::getenv("HOME");
-    if (path != nullptr && std::strlen(path) > 0)
+    try
     {
-        return path;
+        const char *homePath = std::getenv("HOME");
+        if (homePath == nullptr || std::strlen(homePath) == 0)
+        {
+            retinify::LogError("HOME environment variable is not set or empty.");
+            path.clear();
+            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+        }
+
+        path = std::filesystem::path{homePath};
+        return Status{};
+    }
+    catch (const std::exception &ex)
+    {
+        retinify::LogError(ex.what());
+    }
+    catch (...)
+    {
+        retinify::LogError("Unknown exception occurred.");
     }
 
-    LogError("Environment variable 'HOME' is not set or empty.");
-    return nullptr;
+    path.clear();
+    return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
 }
 
-auto ConfigDirectoryPath() noexcept -> const char *
+auto ConfigDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    return ResolveUserDirectory(kConfigDirName, "Failed to create or access the configuration directory.");
+    return GetUserDirectoryPath(kConfigDirectoryInfo, path);
 }
 
-auto CacheDirectoryPath() noexcept -> const char *
+auto CacheDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    return ResolveUserDirectory(kCacheDirName, "Failed to create or access the cache directory.");
+    return GetUserDirectoryPath(kCacheDirectoryInfo, path);
 }
 
-auto DataDirectoryPath() noexcept -> const char *
+auto DataDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    return ResolveUserDirectory(kDataDirName, "Failed to create or access the data directory.");
+    return GetUserDirectoryPath(kDataDirectoryInfo, path);
 }
 
-auto StateDirectoryPath() noexcept -> const char *
+auto StateDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    return ResolveUserDirectory(kStateDirName, "Failed to create or access the state directory.");
-}
-
-auto StereoMatchingOnnxFilePath() noexcept -> const char *
-{
-    return STEREO_MATCHING_ONNX_PATH;
+    return GetUserDirectoryPath(kStateDirectoryInfo, path);
 }
 } // namespace retinify

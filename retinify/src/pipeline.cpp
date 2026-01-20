@@ -6,6 +6,8 @@
 #include "session.hpp"
 #include "stream.hpp"
 
+#include "retinify/retinifyModels.hpp"
+
 #include "retinify/logging.hpp"
 #include "retinify/paths.hpp"
 #include "retinify/pipeline.hpp"
@@ -355,7 +357,7 @@ class Pipeline::Impl
             return status;
         }
 
-        status = session_.Initialize(StereoMatchingOnnxFilePath());
+        status = session_.Initialize(STEREO_MATCHING_ONNX_PATH);
         if (!status.IsOK())
         {
             return status;

@@ -73,11 +73,18 @@ auto Session::Initialize(const char *model_path) noexcept -> Status
     // Load TensorRT engine
     try
     {
-        std::string engineFilePath = std::string(CacheDirectoryPath()) + "/model.trt";
+        std::filesystem::path cacheDirectoryPath;
+        Status cacheDirStatus = CacheDirectoryPath(cacheDirectoryPath);
+        if (!cacheDirStatus.IsOK())
+        {
+            return cacheDirStatus;
+        }
+
+        const std::filesystem::path engineFilePath = cacheDirectoryPath / "stereo-matching.engine";
 
         if (std::filesystem::exists(engineFilePath))
         {
-            LogDebug("Found TensorRT engine file at cache directory. Loading...");
+            LogInfo("Found TensorRT engine file at cache directory. Loading...");
 
             std::error_code ec;
             const auto fileSize = std::filesystem::file_size(engineFilePath, ec);
@@ -106,7 +113,7 @@ auto Session::Initialize(const char *model_path) noexcept -> Status
         }
         else
         {
-            LogDebug("TensorRT engine not found. Starting first-time build. This process may take several minutes...");
+            LogInfo("TensorRT engine not found. Starting first-time build. This process may take several minutes...");
 
             auto builder = std::unique_ptr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(logger));
             if (!builder)
