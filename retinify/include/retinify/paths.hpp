@@ -4,42 +4,49 @@
 #pragma once
 
 #include "retinify/attributes.hpp"
+#include "retinify/status.hpp"
+
+#include <filesystem>
 
 namespace retinify
 {
 /// @brief
 /// Returns the current user’s home directory path
+/// @param path
+/// Output home directory path
 /// @return
-/// A null-terminated string with the home directory path, or nullptr on failure
-RETINIFY_API auto HomeDirectoryPath() noexcept -> const char *;
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API [[nodiscard]] auto HomeDirectoryPath(std::filesystem::path &path) noexcept -> Status;
 
 /// @brief
 /// Returns the configuration directory path for retinify
+/// @param path
+/// Output configuration directory path
 /// @return
-/// A null-terminated string with the config directory path, or nullptr on failure
-RETINIFY_API auto ConfigDirectoryPath() noexcept -> const char *;
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API [[nodiscard]] auto ConfigDirectoryPath(std::filesystem::path &path) noexcept -> Status;
 
 /// @brief
 /// Returns the cache directory path for retinify
+/// @param path
+/// Output cache directory path
 /// @return
-/// A null-terminated string with the cache directory path, or nullptr on failure
-RETINIFY_API auto CacheDirectoryPath() noexcept -> const char *;
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API [[nodiscard]] auto CacheDirectoryPath(std::filesystem::path &path) noexcept -> Status;
 
 /// @brief
 /// Returns the data directory path for retinify
+/// @param path
+/// Output data directory path
 /// @return
-/// A null-terminated string with the data directory path, or nullptr on failure
-RETINIFY_API auto DataDirectoryPath() noexcept -> const char *;
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API [[nodiscard]] auto DataDirectoryPath(std::filesystem::path &path) noexcept -> Status;
 
 /// @brief
 /// Returns the state directory path for retinify
+/// @param path
+/// Output state directory path
 /// @return
-/// A null-terminated string with the state directory path, or nullptr on failure
-RETINIFY_API auto StateDirectoryPath() noexcept -> const char *;
-
-/// @brief
-/// Returns the path to the ONNX model file used for stereo matching
-/// @return
-/// A null-terminated string with the ONNX model file path
-RETINIFY_API auto StereoMatchingOnnxFilePath() noexcept -> const char *;
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API [[nodiscard]] auto StateDirectoryPath(std::filesystem::path &path) noexcept -> Status;
 } // namespace retinify
