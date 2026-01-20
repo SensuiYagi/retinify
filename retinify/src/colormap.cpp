@@ -76,7 +76,7 @@ static constexpr std::uint8_t TURBO_LUT[256][3] = {
     {133, 7, 2},    {129, 6, 2},    {126, 5, 2},     {122, 4, 3}      //
 };
 
-auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) -> Status
+auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) noexcept -> Status
 {
     if (src == nullptr || dst == nullptr)
     {
