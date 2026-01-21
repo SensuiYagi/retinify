@@ -18,6 +18,8 @@
 
 namespace retinify
 {
+namespace
+{
 #ifdef BUILD_WITH_TENSORRT
 class TensorRTLogger : public nvinfer1::ILogger
 {
@@ -47,36 +49,26 @@ class TensorRTLogger : public nvinfer1::ILogger
     }
 };
 #endif
+} // namespace
 
-Session::~Session() noexcept
+auto Session::Initialize(const char *modelPath) noexcept -> Status
 {
 #ifdef BUILD_WITH_TENSORRT
-    delete context_;
-    delete engine_;
-    delete runtime_;
-#else
-#endif
-}
-
-auto Session::Initialize(const char *model_path) noexcept -> Status
-{
-#ifdef BUILD_WITH_TENSORRT
-    // Create TensorRT runtime
-    TensorRTLogger logger;
-    runtime_ = nvinfer1::createInferRuntime(logger);
-    if (runtime_ == nullptr)
-    {
-        LogError("Failed to create TensorRT runtime: createInferRuntime returned nullptr");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    }
-
-    // Load TensorRT engine
     try
     {
+        TensorRTLogger logger;
+        runtime_.reset(nvinfer1::createInferRuntime(logger));
+        if (!runtime_)
+        {
+            LogError("Failed to create TensorRT runtime: createInferRuntime returned nullptr");
+            return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        }
+
         std::filesystem::path cacheDirectoryPath;
-        Status cacheDirStatus = CacheDirectoryPath(cacheDirectoryPath);
+        auto cacheDirStatus = CacheDirectoryPath(cacheDirectoryPath);
         if (!cacheDirStatus.IsOK())
         {
+            LogError("Failed to get cache directory path.");
             return cacheDirStatus;
         }
 
@@ -109,83 +101,91 @@ auto Session::Initialize(const char *model_path) noexcept -> Status
                 return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
             }
 
-            engine_ = runtime_->deserializeCudaEngine(engineData.data(), fileSize);
+            engine_.reset(runtime_->deserializeCudaEngine(engineData.data(), fileSize));
         }
         else
         {
             LogInfo("TensorRT engine not found. Starting first-time build. This process may take several minutes...");
 
-            auto builder = std::unique_ptr<nvinfer1::IBuilder>(nvinfer1::createInferBuilder(logger));
+            auto builder = std::unique_ptr<nvinfer1::IBuilder>{nvinfer1::createInferBuilder(logger)};
             if (!builder)
             {
                 LogError("Failed to create TensorRT builder: createInferBuilder returned nullptr");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            auto config = std::unique_ptr<nvinfer1::IBuilderConfig>(builder->createBuilderConfig());
+            auto config = std::unique_ptr<nvinfer1::IBuilderConfig>{builder->createBuilderConfig()};
             if (!config)
             {
                 LogError("Failed to create TensorRT builder config: createBuilderConfig returned nullptr");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            auto network = std::unique_ptr<nvinfer1::INetworkDefinition>(builder->createNetworkV2(1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kSTRONGLY_TYPED)));
+            auto network = std::unique_ptr<nvinfer1::INetworkDefinition>{builder->createNetworkV2(1U << static_cast<uint32_t>(nvinfer1::NetworkDefinitionCreationFlag::kSTRONGLY_TYPED))};
             if (!network)
             {
                 LogError("Failed to create TensorRT network definition: createNetworkV2 returned nullptr");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            auto parser = std::unique_ptr<nvonnxparser::IParser>(nvonnxparser::createParser(*network, logger));
+            auto parser = std::unique_ptr<nvonnxparser::IParser>{nvonnxparser::createParser(*network, logger)};
             if (!parser)
             {
                 LogError("Failed to create ONNX parser: createParser returned nullptr");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            // Parse ONNX model
-            if (!parser->parseFromFile(model_path, static_cast<int>(nvinfer1::ILogger::Severity::kWARNING)))
+            if (!parser->parseFromFile(modelPath, static_cast<int>(nvinfer1::ILogger::Severity::kWARNING)))
             {
                 LogError("Failed to parse ONNX model file.");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            // Configure optimization
             constexpr std::uint64_t kWorkSpacePoolSize = static_cast<std::uint64_t>(1) << 30; // 1 GiB
             config->setMemoryPoolLimit(nvinfer1::MemoryPoolType::kWORKSPACE, kWorkSpacePoolSize);
 
-            // Set optimization profiles
             auto *profile = builder->createOptimizationProfile();
-            nvinfer1::Dims minDims{4, {1, 320, 640, 1}};
-            nvinfer1::Dims optDims{4, {1, 480, 640, 1}};
-            nvinfer1::Dims maxDims{4, {1, 720, 1280, 1}};
+            if (!profile)
+            {
+                LogError("Failed to create optimization profile: createOptimizationProfile returned nullptr");
+                return Status{StatusCategory::CUDA, StatusCode::FAIL};
+            }
 
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kMIN, minDims))
+            nvinfer1::Dims minDims{4, {1, kEngineMinHeight, kEngineMinWidth, 1}};
+            nvinfer1::Dims optDims{4, {1, kEngineOptHeight, kEngineOptWidth, 1}};
+            nvinfer1::Dims maxDims{4, {1, kEngineMaxHeight, kEngineMaxWidth, 1}};
+
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kMIN, minDims))
             {
                 LogError("Failed to set MIN dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kOPT, optDims))
+
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kOPT, optDims))
             {
                 LogError("Failed to set OPT dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kMAX, maxDims))
+
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kMAX, maxDims))
             {
                 LogError("Failed to set MAX dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kMIN, minDims))
+
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kMIN, minDims))
             {
                 LogError("Failed to set MIN dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kOPT, optDims))
+
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kOPT, optDims))
             {
                 LogError("Failed to set OPT dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kMAX, maxDims))
+
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kMAX, maxDims))
             {
                 LogError("Failed to set MAX dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
@@ -197,56 +197,48 @@ auto Session::Initialize(const char *model_path) noexcept -> Status
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            // Build engine
-            auto serializedEngine = std::unique_ptr<nvinfer1::IHostMemory>(builder->buildSerializedNetwork(*network, *config));
+            auto serializedEngine = std::unique_ptr<nvinfer1::IHostMemory>{builder->buildSerializedNetwork(*network, *config)};
             if (!serializedEngine)
             {
                 LogError("Failed to build serialized TensorRT engine: buildSerializedNetwork returned nullptr");
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            // Save engine to cache
-            std::ofstream engineCache(engineFilePath, std::ios::binary);
-            if (engineCache.good())
+            std::ofstream engineFileCache(engineFilePath, std::ios::binary);
+            if (engineFileCache.is_open())
             {
-                engineCache.write(static_cast<const char *>(serializedEngine->data()), serializedEngine->size());
-                engineCache.close();
+                engineFileCache.write(static_cast<const char *>(serializedEngine->data()), serializedEngine->size());
+                engineFileCache.close();
             }
 
-            // Deserialize engine
-            engine_ = runtime_->deserializeCudaEngine(serializedEngine->data(), serializedEngine->size());
+            engine_.reset(runtime_->deserializeCudaEngine(serializedEngine->data(), serializedEngine->size()));
         }
+
+        if (!engine_)
+        {
+            LogError("Failed to create TensorRT engine: deserializeCudaEngine returned nullptr");
+            return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        }
+
+        context_.reset(engine_->createExecutionContext());
+        if (!context_)
+        {
+            LogError("Failed to create TensorRT execution context: createExecutionContext returned nullptr");
+            return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        }
+
+        return Status{};
     }
-    catch (std::exception &e)
+    catch (std::exception &ex)
     {
-        LogError(e.what());
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        LogError(ex.what());
+        return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
     }
     catch (...)
     {
         LogFatal("An unknown error occurred.");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
     }
-
-    if (engine_ == nullptr)
-    {
-        LogError("Failed to create TensorRT engine: deserializeCudaEngine returned nullptr");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    }
-    else
-    {
-        LogDebug("TensorRT engine loaded successfully.");
-    }
-
-    // Create execution context
-    context_ = engine_->createExecutionContext();
-    if (context_ == nullptr)
-    {
-        LogError("Failed to create TensorRT execution context: createExecutionContext returned nullptr");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    }
-
-    return Status{};
 #else
     (void)model_path;
     LogError("This function is not available");
