@@ -26,11 +26,28 @@ namespace retinify
 /// @param imageHeight
 /// Height of the input and output disparity maps (in pixels)
 /// @param maxDisparity
-/// Maximum disparity value for normalization
+/// Maximum disparity value
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto ColorizeDisparity(const float *src, std::size_t srcStride,             //
-                                    std::uint8_t *dst, std::size_t dstStride,            //
-                                    std::uint32_t imageWidth, std::uint32_t imageHeight, //
-                                    float maxDisparity) noexcept -> Status;
+RETINIFY_API auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) noexcept -> Status;
+
+/// @brief
+/// Applies the colormap to the depth map
+/// @param src
+/// Input depth map (32-bit float)
+/// @param srcStride
+/// Stride of the input depth map (in bytes)
+/// @param dst
+/// Output colored depth map (8-bit 3-channel RGB)
+/// @param dstStride
+/// Stride of the output colored depth map (in bytes)
+/// @param imageWidth
+/// Width of the input and output depth maps (in pixels)
+/// @param imageHeight
+/// Height of the input and output depth maps (in pixels)
+/// @param maxDepth
+/// Maximum depth value
+/// @return
+/// A Status object that indicates whether the operation was successful
+RETINIFY_API auto ColorizeDepth(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDepth) noexcept -> Status;
 } // namespace retinify

@@ -9,6 +9,8 @@
 
 namespace retinify
 {
+namespace
+{
 static constexpr std::uint8_t TURBO_LUT[256][3] = {
     {48, 18, 59},   {50, 21, 67},   {51, 24, 74},    {52, 27, 81},    //
     {53, 30, 88},   {54, 33, 95},   {55, 36, 102},   {56, 39, 109},   //
@@ -76,7 +78,7 @@ static constexpr std::uint8_t TURBO_LUT[256][3] = {
     {133, 7, 2},    {129, 6, 2},    {126, 5, 2},     {122, 4, 3}      //
 };
 
-auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) noexcept -> Status
+auto Colorize(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxValue) noexcept -> Status
 {
     if (src == nullptr || dst == nullptr)
     {
@@ -90,9 +92,9 @@ auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *ds
         return Status{StatusCategory::USER, StatusCode::INVALID_ARGUMENT};
     }
 
-    if (maxDisparity <= 0.0F)
+    if (maxValue <= 0.0F)
     {
-        LogError("maxDisparity is non-positive.");
+        LogError("Maximum value must be greater than zero.");
         return Status{StatusCategory::USER, StatusCode::INVALID_ARGUMENT};
     }
 
@@ -129,7 +131,7 @@ auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *ds
                 return Status{StatusCategory::USER, StatusCode::INVALID_ARGUMENT};
             }
 
-            d = std::min(std::max(d, 0.0f), maxDisparity) / maxDisparity;
+            d = std::min(std::max(d, 0.0f), maxValue) / maxValue;
 
             constexpr float kRoundOffset = 0.5f;
             int idx = static_cast<int>(d * 255.0f + kRoundOffset);
@@ -142,5 +144,16 @@ auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *ds
     }
 
     return Status{};
+}
+} // namespace
+
+auto ColorizeDisparity(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDisparity) noexcept -> Status
+{
+    return Colorize(src, srcStride, dst, dstStride, imageWidth, imageHeight, maxDisparity);
+}
+
+auto ColorizeDepth(const float *src, std::size_t srcStride, std::uint8_t *dst, std::size_t dstStride, std::uint32_t imageWidth, std::uint32_t imageHeight, float maxDepth) noexcept -> Status
+{
+    return Colorize(src, srcStride, dst, dstStride, imageWidth, imageHeight, maxDepth);
 }
 } // namespace retinify
