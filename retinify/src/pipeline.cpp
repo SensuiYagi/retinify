@@ -87,16 +87,16 @@ class Pipeline::Impl
         switch (depthMode)
         {
         case DepthMode::FAST:
-            matchingWidth_ = 640;
-            matchingHeight_ = 320;
+            matchingWidth_ = kEngineMinWidth;
+            matchingHeight_ = kEngineMinHeight;
             break;
         case DepthMode::BALANCED:
-            matchingWidth_ = 640;
-            matchingHeight_ = 480;
+            matchingWidth_ = kEngineOptWidth;
+            matchingHeight_ = kEngineOptHeight;
             break;
         case DepthMode::ACCURATE:
-            matchingWidth_ = 1280;
-            matchingHeight_ = 720;
+            matchingWidth_ = kEngineMaxWidth;
+            matchingHeight_ = kEngineMaxHeight;
             break;
         default:
             LogError("Invalid stereo matching mode.");
@@ -363,19 +363,19 @@ class Pipeline::Impl
             return status;
         }
 
-        status = session_.BindInput("left", leftResizedRectified32FC1_);
+        status = session_.BindInput(kOnnxLeftInputName, leftResizedRectified32FC1_);
         if (!status.IsOK())
         {
             return status;
         }
 
-        status = session_.BindInput("right", rightResizedRectified32FC1_);
+        status = session_.BindInput(kOnnxRightInputName, rightResizedRectified32FC1_);
         if (!status.IsOK())
         {
             return status;
         }
 
-        status = session_.BindOutput("disparity", disparityResized32FC1_);
+        status = session_.BindOutput(kOnnxDisparityOutputName, disparityResized32FC1_);
         if (!status.IsOK())
         {
             return status;
@@ -772,8 +772,8 @@ class Pipeline::Impl
     std::size_t imageWidth_{};       // original input image width
     std::size_t imageHeight_{};      // original input image height
     std::size_t imageChannels_{};    // original input image channels
-    std::size_t matchingHeight_{};   // image height for stereo matching
     std::size_t matchingWidth_{};    // image width for stereo matching
+    std::size_t matchingHeight_{};   // image height for stereo matching
     Session session_;                // inference session
     Stream stream_;                  // stream for operations
     Mat leftMapX_;                   // left x map for image remapping
