@@ -240,7 +240,7 @@ auto Session::Initialize(const char *modelPath) noexcept -> Status
         return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
     }
 #else
-    (void)model_path;
+    (void)modelPath;
     LogError("This function is not available");
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
 #endif
