@@ -18,6 +18,8 @@
 
 namespace retinify
 {
+namespace
+{
 #ifdef BUILD_WITH_TENSORRT
 class TensorRTLogger : public nvinfer1::ILogger
 {
@@ -47,6 +49,7 @@ class TensorRTLogger : public nvinfer1::ILogger
     }
 };
 #endif
+} // namespace
 
 auto Session::Initialize(const char *modelPath) noexcept -> Status
 {
@@ -148,41 +151,41 @@ auto Session::Initialize(const char *modelPath) noexcept -> Status
                 return Status{StatusCategory::CUDA, StatusCode::FAIL};
             }
 
-            nvinfer1::Dims minDims{4, {1, 320, 640, 1}};
-            nvinfer1::Dims optDims{4, {1, 480, 640, 1}};
-            nvinfer1::Dims maxDims{4, {1, 720, 1280, 1}};
+            nvinfer1::Dims minDims{4, {1, kEngineMinHeight, kEngineMinWidth, 1}};
+            nvinfer1::Dims optDims{4, {1, kEngineOptHeight, kEngineOptWidth, 1}};
+            nvinfer1::Dims maxDims{4, {1, kEngineMaxHeight, kEngineMaxWidth, 1}};
 
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kMIN, minDims))
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kMIN, minDims))
             {
                 LogError("Failed to set MIN dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
 
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kOPT, optDims))
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kOPT, optDims))
             {
                 LogError("Failed to set OPT dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
 
-            if (!profile->setDimensions("left", nvinfer1::OptProfileSelector::kMAX, maxDims))
+            if (!profile->setDimensions(kOnnxLeftInputName, nvinfer1::OptProfileSelector::kMAX, maxDims))
             {
                 LogError("Failed to set MAX dimensions for 'left' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
 
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kMIN, minDims))
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kMIN, minDims))
             {
                 LogError("Failed to set MIN dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
 
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kOPT, optDims))
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kOPT, optDims))
             {
                 LogError("Failed to set OPT dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
             }
 
-            if (!profile->setDimensions("right", nvinfer1::OptProfileSelector::kMAX, maxDims))
+            if (!profile->setDimensions(kOnnxRightInputName, nvinfer1::OptProfileSelector::kMAX, maxDims))
             {
                 LogError("Failed to set MAX dimensions for 'right' input");
                 return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
@@ -202,7 +205,7 @@ auto Session::Initialize(const char *modelPath) noexcept -> Status
             }
 
             std::ofstream engineFileCache(engineFilePath, std::ios::binary);
-            if (engineFileCache.good())
+            if (engineFileCache.is_open())
             {
                 engineFileCache.write(static_cast<const char *>(serializedEngine->data()), serializedEngine->size());
                 engineFileCache.close();
