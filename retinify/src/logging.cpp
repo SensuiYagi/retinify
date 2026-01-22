@@ -48,7 +48,7 @@ void SetLogLocation(LogLocation location) noexcept
 namespace
 {
 constexpr const char kDefaultLabel[] = "NONE ";
-constexpr const char kDefaultMessage[] = "No message provided.";
+constexpr const char kDefaultMessage[] = " ";
 
 struct LogMetadata
 {
