@@ -29,10 +29,26 @@ void SetLogLevel(LogLevel level) noexcept
     GetLogLevelStorage().store(level, std::memory_order_relaxed);
 }
 
+static inline auto GetLogLocationStorage() noexcept -> std::atomic<LogLocation> &
+{
+    static std::atomic<LogLocation> storage{LogLocation::NONE};
+    return storage;
+}
+
+auto GetLogLocation() noexcept -> LogLocation
+{
+    return GetLogLocationStorage().load(std::memory_order_relaxed);
+}
+
+void SetLogLocation(LogLocation location) noexcept
+{
+    GetLogLocationStorage().store(location, std::memory_order_relaxed);
+}
+
 namespace
 {
-constexpr const char *kDefaultLabel = "NONE ";
-constexpr const char *kDefaultMessage = "No message provided.";
+constexpr const char kDefaultLabel[] = "NONE ";
+constexpr const char kDefaultMessage[] = " ";
 
 struct LogMetadata
 {
@@ -112,16 +128,22 @@ static inline void Log(LogLevel level, const char *message, std::source_location
             return;
         }
 
-        const char *functionName = location.function_name();
-        if (functionName == nullptr)
+        out << "[" << GetCurrentTime() << "]"
+
+            << "[" << metadata.colorCode << metadata.label << "\033[0m" << "]";
+
+        switch (GetLogLocation())
         {
-            return;
+        case LogLocation::NONE:
+            break;
+        case LogLocation::FUNCTION:
+            out << "[" << location.function_name() << "]";
+            break;
+        default:
+            break;
         }
 
-        out << "[" << GetCurrentTime() << "]"                                  //
-            << "[" << metadata.colorCode << metadata.label << "\033[0m" << "]" //
-            << "[" << functionName << "]"                                      //
-            << SanitizeMessage(message) << '\n';                               //
+        out << SanitizeMessage(message) << '\n';
     }
     catch (...) // NOLINT(bugprone-empty-catch)
     {

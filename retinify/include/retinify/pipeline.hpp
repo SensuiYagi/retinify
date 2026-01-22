@@ -65,30 +65,7 @@ class RETINIFY_API Pipeline
     /// The stereo camera calibration parameters
     /// @return
     /// A Status object that indicates whether the operation was successful
-    [[nodiscard]] auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight,                                    //
-                                  PixelFormat pixelFormat = PixelFormat::RGB8, DepthMode depthMode = DepthMode::ACCURATE, //
-                                  const CalibrationParameters &calibrationParameters = CalibrationParameters{}) noexcept -> Status;
-
-    /// @brief
-    /// Executes the stereo matching pipeline using the given left and right image data
-    /// @param leftImageData
-    /// Pointer to the left image data
-    /// @param leftImageStride
-    /// Stride of a row in the left image (in bytes)
-    /// @param rightImageData
-    /// Pointer to the right image data
-    /// @param rightImageStride
-    /// Stride of a row in the right image (in bytes)
-    /// @param disparityData
-    /// Pointer to the output buffer for disparity data (32-bit float)
-    /// @param disparityStride
-    /// Stride of a row in the output disparity data (in bytes)
-    /// @return
-    /// A Status object that indicates whether the operation was successful
-    RETINIFY_DEPRECATED("Use Execute() instead")
-    [[nodiscard]] auto Run(const std::uint8_t *leftImageData, std::size_t leftImageStride,   //
-                           const std::uint8_t *rightImageData, std::size_t rightImageStride, //
-                           float *disparityData, std::size_t disparityStride) noexcept -> Status;
+    [[nodiscard]] auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat = PixelFormat::RGB8, DepthMode depthMode = DepthMode::ACCURATE, const CalibrationParameters &calibrationParameters = CalibrationParameters{}) noexcept -> Status;
 
     /// @brief
     /// Executes the stereo matching pipeline using the given left and right image data
@@ -104,8 +81,7 @@ class RETINIFY_API Pipeline
     /// A Status object that indicates whether the operation was successful
     /// @note
     /// This function must be called after Initialize()
-    [[nodiscard]] auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                               const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
+    [[nodiscard]] auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
 
     /// @brief
     /// Retrieves the rectified left image
@@ -145,8 +121,7 @@ class RETINIFY_API Pipeline
     /// A Status object that indicates whether the operation was successful
     /// @note
     /// This function must be called after Execute()
-    [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                                               std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
+    [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status;
 
     /// @brief
     /// Retrieves the computed disparity map
