@@ -52,8 +52,7 @@ class Pipeline::Impl
     Impl(Impl &&) noexcept = delete;
     auto operator=(Impl &&other) noexcept -> Impl & = delete;
 
-    auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat, //
-                    DepthMode depthMode, const CalibrationParameters &calibrationParameters) noexcept -> Status
+    auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat, DepthMode depthMode, const CalibrationParameters &calibrationParameters) noexcept -> Status
     {
         Status status;
 
@@ -64,11 +63,9 @@ class Pipeline::Impl
             return status;
         }
 
-        // Set image dimensions
         imageWidth_ = static_cast<std::size_t>(imageWidth);
         imageHeight_ = static_cast<std::size_t>(imageHeight);
 
-        // Set image channels
         switch (pixelFormat)
         {
         case PixelFormat::GRAY8:
@@ -83,7 +80,6 @@ class Pipeline::Impl
             return status;
         }
 
-        // Set matching resolution
         switch (depthMode)
         {
         case DepthMode::FAST:
@@ -99,13 +95,10 @@ class Pipeline::Impl
             matchingHeight_ = kEngineMaxHeight;
             break;
         default:
-            LogError("Invalid stereo matching mode.");
+            LogError("Invalid depth mode.");
             status = Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
             return status;
         }
-
-        // Initialize matrices
-        reprojectionMatrix_ = Mat4x4d{};
 
         status = stream_.Create();
         if (!status.IsOK())
@@ -385,8 +378,7 @@ class Pipeline::Impl
         return status;
     }
 
-    [[nodiscard]] auto CheckInputImage(const std::uint8_t *leftImageData, const std::size_t leftImageStride, //
-                                       const std::uint8_t *rightImageData, const std::size_t rightImageStride) noexcept -> Status
+    [[nodiscard]] auto CheckInputImage(const std::uint8_t *leftImageData, const std::size_t leftImageStride, const std::uint8_t *rightImageData, const std::size_t rightImageStride) noexcept -> Status
     {
         if (!leftImageData)
         {
@@ -415,8 +407,7 @@ class Pipeline::Impl
         return Status{};
     }
 
-    auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                 const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
+    auto Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
     {
         Status status;
 
@@ -590,8 +581,7 @@ class Pipeline::Impl
         return Status{};
     }
 
-    [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                                               std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
+    [[nodiscard]] auto RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
     {
         Status status;
 
@@ -820,34 +810,12 @@ auto Pipeline::impl() const noexcept -> const Impl *
     return std::launder(reinterpret_cast<const Impl *>(&buffer_)); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 }
 
-auto Pipeline::Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat, //
-                          DepthMode depthMode, const CalibrationParameters &calibrationParameters) noexcept -> Status
+auto Pipeline::Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat, DepthMode depthMode, const CalibrationParameters &calibrationParameters) noexcept -> Status
 {
     return this->impl()->Initialize(imageWidth, imageHeight, pixelFormat, depthMode, calibrationParameters);
 }
 
-auto Pipeline::Run(const std::uint8_t *leftImageData, std::size_t leftImageStride,   //
-                   const std::uint8_t *rightImageData, std::size_t rightImageStride, //
-                   float *disparityData, std::size_t disparityStride) noexcept -> Status
-{
-    Status status;
-    status = this->impl()->Execute(leftImageData, leftImageStride, rightImageData, rightImageStride);
-    if (!status.IsOK())
-    {
-        return status;
-    }
-
-    status = this->impl()->RetrieveDisparity(disparityData, disparityStride);
-    if (!status.IsOK())
-    {
-        return status;
-    }
-
-    return status;
-}
-
-auto Pipeline::Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                       const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
+auto Pipeline::Execute(const std::uint8_t *leftImageData, std::size_t leftImageStride, const std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
 {
     return this->impl()->Execute(leftImageData, leftImageStride, rightImageData, rightImageStride);
 }
@@ -862,8 +830,7 @@ auto Pipeline::RetrieveRectifiedRightImage(std::uint8_t *rightImageData, std::si
     return this->impl()->RetrieveRectifiedRightImage(rightImageData, rightImageStride);
 }
 
-auto Pipeline::RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, //
-                                       std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
+auto Pipeline::RetrieveRectifiedImages(std::uint8_t *leftImageData, std::size_t leftImageStride, std::uint8_t *rightImageData, std::size_t rightImageStride) noexcept -> Status
 {
     return this->impl()->RetrieveRectifiedImages(leftImageData, leftImageStride, rightImageData, rightImageStride);
 }
