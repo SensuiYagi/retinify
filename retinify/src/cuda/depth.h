@@ -12,6 +12,6 @@ namespace retinify
 cudaError_t cudaDisparityToDepth(const float *disparity, std::size_t disparityStride, //
                                  float *depth, std::size_t depthStride,               //
                                  std::uint32_t width, std::uint32_t height,           //
-                                 const float *reprojectionQ,                          //
+                                 const float *reprojectionMatrix,                     //
                                  cudaStream_t stream);
 } // namespace retinify

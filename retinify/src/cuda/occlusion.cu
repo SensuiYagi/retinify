@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025 Sensui Yagi. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+#include "common.h"
 #include "occlusion.h"
 
 #include <cfloat>
@@ -23,11 +24,6 @@
 
 namespace retinify
 {
-static inline std::uint32_t DivUpUint32(std::uint32_t a, std::uint32_t b)
-{
-    return (a + b - 1) / b;
-}
-
 __global__ void DisparityOcclusionFilterKernel(const float *__restrict__ leftDisparity, std::size_t leftDisparityStride, //
                                                float *__restrict__ outputDisparity, std::size_t outputDisparityStride,   //
                                                std::uint32_t disparityWidth, std::uint32_t disparityHeight)
@@ -145,7 +141,7 @@ cudaError_t cudaDisparityOcclusionFilter(const float *leftDisparity, std::size_t
     }
 
     dim3 block(OCCL_BLOCK_W, OCCL_BLOCK_H, 1);
-    const std::uint32_t gridY = DivUpUint32(disparityHeight, static_cast<std::uint32_t>(block.y));
+    const std::uint32_t gridY = DivUp(disparityHeight, static_cast<std::uint32_t>(block.y));
     dim3 grid(1, gridY, 1);
 
     const std::size_t sharedBytes = static_cast<std::size_t>(block.y) * sizeof(float);
