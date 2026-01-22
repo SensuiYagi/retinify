@@ -20,7 +20,6 @@
 
 namespace retinify
 {
-#ifdef BUILD_WITH_TENSORRT
 constexpr const char kOnnxLeftInputName[] = "left";
 constexpr const char kOnnxRightInputName[] = "right";
 constexpr const char kOnnxDisparityOutputName[] = "disparity";
@@ -30,8 +29,6 @@ constexpr int kEngineOptHeight = 480;
 constexpr int kEngineOptWidth = 640;
 constexpr int kEngineMaxHeight = 720;
 constexpr int kEngineMaxWidth = 1280;
-#else
-#endif
 
 class RETINIFY_API Session
 {
