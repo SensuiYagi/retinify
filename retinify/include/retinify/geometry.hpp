@@ -41,34 +41,6 @@ using Mat3x4d = std::array<std::array<double, 4>, 3>;
 using Mat4x4d = std::array<std::array<double, 4>, 4>;
 
 /// @brief
-/// 2D vector (float)
-using Vec2f = std::array<float, 2>;
-
-/// @brief
-/// 3D vector (float)
-using Vec3f = std::array<float, 3>;
-
-/// @brief
-/// 2D point (float)
-using Point2f = std::array<float, 2>;
-
-/// @brief
-/// 3D point (float)
-using Point3f = std::array<float, 3>;
-
-/// @brief
-/// 3x3 matrix (float, row-major)
-using Mat3x3f = std::array<std::array<float, 3>, 3>;
-
-/// @brief
-/// 3x4 matrix (float, row-major)
-using Mat3x4f = std::array<std::array<float, 4>, 3>;
-
-/// @brief
-/// 4x4 matrix (float, row-major)
-using Mat4x4f = std::array<std::array<float, 4>, 4>;
-
-/// @brief
 /// Rectangle structure
 /// @tparam T
 /// Type of the rectangle coordinates and dimensions
@@ -87,10 +59,6 @@ template <typename T> struct Rect2
     /// Height of the rectangle
     T height{0};
 };
-
-/// @brief
-/// 2D rectangle (int)
-using Rect2i = Rect2<std::int32_t>;
 
 /// @brief
 /// 2D rectangle (double)
@@ -293,16 +261,6 @@ struct Distortion
 };
 
 /// @brief
-/// Fisheye distortion model with 4 coefficients (k1, k2, k3, k4)
-struct DistortionFisheye
-{
-    double k1{0};
-    double k2{0};
-    double k3{0};
-    double k4{0};
-};
-
-/// @brief
 /// Stereo camera calibration parameters
 struct CalibrationParameters
 {
@@ -402,8 +360,8 @@ RETINIFY_API auto DistortPoint(const Intrinsics &intrinsics, const Distortion &d
 /// Output projection matrix for the first camera
 /// @param projectionMatrix2
 /// Output projection matrix for the second camera
-/// @param mappingMatrix
-/// Output mapping matrix
+/// @param reprojectionMatrix
+/// Output reprojection matrix
 /// @param alpha
 /// A free scaling parameter that controls cropping after rectification:
 /// 0 keeps only valid pixels (no black borders),
@@ -412,13 +370,7 @@ RETINIFY_API auto DistortPoint(const Intrinsics &intrinsics, const Distortion &d
 /// and -1 applies the default behavior
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, //
-                                const Intrinsics &intrinsics2, const Distortion &distortion2, //
-                                const Mat3x3d &rotation, const Vec3d &translation,            //
-                                std::uint32_t imageWidth, std::uint32_t imageHeight,          //
-                                Mat3x3d &rotation1, Mat3x3d &rotation2,                       //
-                                Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2,       //
-                                Mat4x4d &mappingMatrix, double alpha) noexcept -> Status;
+RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rotation, const Vec3d &translation, std::uint32_t imageWidth, std::uint32_t imageHeight, Mat3x3d &rotation1, Mat3x3d &rotation2, Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2, Mat4x4d &reprojectionMatrix, double alpha) noexcept -> Status;
 
 /// @brief
 /// Initialize undistort and rectify maps for image remapping
@@ -444,11 +396,7 @@ RETINIFY_API auto StereoRectify(const Intrinsics &intrinsics1, const Distortion 
 /// Stride of a row in mapY (in bytes)
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
-                                          const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
-                                          std::uint32_t imageWidth, std::uint32_t imageHeight,        //
-                                          float *mapX, std::size_t mapXStride,                        //
-                                          float *mapY, std::size_t mapYStride) noexcept -> Status;
+RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rotation, const Mat3x4d &projectionMatrix, std::uint32_t imageWidth, std::uint32_t imageHeight, float *mapX, std::size_t mapXStride, float *mapY, std::size_t mapYStride) noexcept -> Status;
 
 /// @brief
 /// Initialize identity maps for undistortion/rectification
@@ -466,7 +414,5 @@ RETINIFY_API auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Di
 /// Image height (in pixels)
 /// @return
 /// A Status object that indicates whether the operation was successful
-RETINIFY_API auto InitIdentityMap(float *mapX, std::size_t mapXStride, //
-                                  float *mapY, std::size_t mapYStride, //
-                                  std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;
+RETINIFY_API auto InitIdentityMap(float *mapX, std::size_t mapXStride, float *mapY, std::size_t mapYStride, std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status;
 } // namespace retinify

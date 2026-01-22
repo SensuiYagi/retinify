@@ -738,9 +738,9 @@ void ExpectStereoRectifyMatchesOpenCVAlpha(double alpha)
     Mat3x3d rotation2{};
     Mat3x4d projectionMatrix1{};
     Mat3x4d projectionMatrix2{};
-    Mat4x4d mappingMatrix{};
+    Mat4x4d reprojectionMatrix{};
 
-    const Status status = StereoRectify(intrinsics1, distortion1, intrinsics2, distortion2, rotation, translation, 960, 720, rotation1, rotation2, projectionMatrix1, projectionMatrix2, mappingMatrix, alpha);
+    const Status status = StereoRectify(intrinsics1, distortion1, intrinsics2, distortion2, rotation, translation, 960, 720, rotation1, rotation2, projectionMatrix1, projectionMatrix2, reprojectionMatrix, alpha);
     ASSERT_TRUE(status.IsOK());
 
     const cv::Mat cameraMatrix1 = ToCvCameraMatrix(intrinsics1);
@@ -780,7 +780,7 @@ void ExpectStereoRectifyMatchesOpenCVAlpha(double alpha)
     expectMatrixRelative(rotation2, expectedR2);
     expectMatrixRelative(projectionMatrix1, expectedP1);
     expectMatrixRelative(projectionMatrix2, expectedP2);
-    expectMatrixRelative(mappingMatrix, expectedQ);
+    expectMatrixRelative(reprojectionMatrix, expectedQ);
 }
 } // namespace
 
