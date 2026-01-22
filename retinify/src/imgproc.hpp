@@ -97,46 +97,6 @@ namespace retinify
 [[nodiscard]] auto RemapImage8U(const Mat &src, const Mat &mapX, const Mat &mapY, Mat &dst, Stream &stream) noexcept -> Status;
 
 /// @brief
-/// Horizontally flip an 8-bit, 1-channel image.
-/// @param src
-/// Input image (8-bit, 1-channel).
-/// @param dst
-/// Output image (8-bit, 1-channel).
-/// @param stream
-/// Execution stream.
-/// @return
-/// Status code.
-[[nodiscard]] auto HorizontalFlip8UC3(const Mat &src, Mat &dst, Stream &stream) noexcept -> Status;
-
-/// @brief
-/// Horizontally flip a 32-bit floating-point, 1-channel image.
-/// @param src
-/// Input image (32-bit floating-point, 1-channel).
-/// @param dst
-/// Output image (32-bit floating-point, 1-channel).
-/// @param stream
-/// Execution stream.
-/// @return
-/// Status code.
-[[nodiscard]] auto HorizontalFlip32FC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> Status;
-
-/// @brief
-/// Perform left-right consistency check on two 32-bit floating-point, 1-channel disparity maps.
-/// @param left
-/// Input left disparity map (32-bit floating-point, 1-channel).
-/// @param right
-/// Input right disparity map (32-bit floating-point, 1-channel).
-/// @param output
-/// Output disparity map after consistency check (32-bit floating-point, 1-channel).
-/// @param relativeError
-/// Maximum allowed relative error for consistency check.
-/// @param stream
-/// Execution stream.
-/// @return
-/// Status code.
-[[nodiscard]] auto LRConsistencyCheck32FC1(const Mat &left, const Mat &right, Mat &output, float relativeError, Stream &stream) noexcept -> Status;
-
-/// @brief
 /// Reproject a disparity map into a 3D point cloud using a reprojection matrix.
 /// @param disparity
 /// Input disparity map (32-bit floating-point, 1-channel).

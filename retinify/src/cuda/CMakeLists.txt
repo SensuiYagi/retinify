@@ -5,8 +5,6 @@ file(GLOB SRCS_CUDA
     depth.h
     occlusion.cu
     occlusion.h
-    lrcheck.cu
-    lrcheck.h
     reproject.cu
     reproject.h
 )

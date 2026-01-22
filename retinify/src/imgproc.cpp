@@ -7,7 +7,6 @@
 
 #ifdef BUILD_WITH_TENSORRT
 #include "cuda/depth.h"
-#include "cuda/lrcheck.h"
 #include "cuda/occlusion.h"
 #include "cuda/reproject.h"
 #include <npp.h>
@@ -445,117 +444,6 @@ auto RemapImage8U(const Mat &src, const Mat &mapX, const Mat &mapY, Mat &dst, St
     (void)mapX;
     (void)mapY;
     (void)dst;
-    (void)stream;
-    LogError("This function is not available");
-    return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
-#endif
-}
-
-auto HorizontalFlip8UC3(const Mat &src, Mat &dst, Stream &stream) noexcept -> Status
-{
-    if (src.Empty() || dst.Empty())
-    {
-        LogError("Source or destination is empty.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-    if (src.Channels() != 3 || dst.Channels() != 3)
-    {
-        LogError("Source and destination must have 3 channels.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-#ifdef BUILD_WITH_TENSORRT
-    NppStatus status = nppiMirror_8u_C3R_Ctx(static_cast<const Npp8u *>(src.Data()), static_cast<int>(src.Stride()), //
-                                             static_cast<Npp8u *>(dst.Data()), static_cast<int>(dst.Stride()),       //
-                                             {static_cast<int>(src.Cols()), static_cast<int>(src.Rows())},           //
-                                             NPP_VERTICAL_AXIS, stream.GetNppStreamContext());
-
-    if (status != NPP_SUCCESS)
-    {
-        LogError("nppiMirror_8u_C3R failed");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    };
-
-    return Status{};
-#else
-    (void)src;
-    (void)dst;
-    (void)stream;
-    LogError("This function is not available");
-    return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
-#endif
-}
-
-auto HorizontalFlip32FC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> Status
-{
-    if (src.Empty() || dst.Empty())
-    {
-        LogError("Source or destination is empty.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-    if (src.Channels() != 1 || dst.Channels() != 1)
-    {
-        LogError("Source and destination must have 1 channel.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-#ifdef BUILD_WITH_TENSORRT
-    NppStatus status = nppiMirror_32f_C1R_Ctx(static_cast<const Npp32f *>(src.Data()), static_cast<int>(src.Stride()), //
-                                              static_cast<Npp32f *>(dst.Data()), static_cast<int>(dst.Stride()),       //
-                                              {static_cast<int>(src.Cols()), static_cast<int>(src.Rows())},            //
-                                              NPP_VERTICAL_AXIS, stream.GetNppStreamContext());
-
-    if (status != NPP_SUCCESS)
-    {
-        LogError("nppiMirror_32f_C1R failed");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    };
-
-    return Status{};
-#else
-    (void)src;
-    (void)dst;
-    (void)stream;
-    LogError("This function is not available");
-    return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
-#endif
-}
-
-auto LRConsistencyCheck32FC1(const Mat &left, const Mat &right, Mat &output, float relativeError, Stream &stream) noexcept -> Status
-{
-    if (left.Empty() || right.Empty() || output.Empty())
-    {
-        LogError("One of the input or output is empty.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-    if (left.Channels() != 1 || right.Channels() != 1 || output.Channels() != 1)
-    {
-        LogError("All of the input and output must have 1 channel.");
-        return Status{StatusCategory::RETINIFY, StatusCode::INVALID_ARGUMENT};
-    }
-
-#ifdef BUILD_WITH_TENSORRT
-    cudaError_t error = cudaLRConsistencyCheck(static_cast<const float *>(left.Data()), left.Stride(),       //
-                                               static_cast<const float *>(right.Data()), right.Stride(),     //
-                                               static_cast<float *>(output.Data()), output.Stride(),         //
-                                               static_cast<int>(left.Cols()), static_cast<int>(left.Rows()), //
-                                               relativeError, stream.GetCudaStream());
-
-    if (error != cudaSuccess)
-    {
-        LogError("cudaLRConsistencyCheck failed");
-        return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    }
-
-    return Status{};
-#else
-    (void)left;
-    (void)right;
-    (void)output;
-    (void)relativeError;
     (void)stream;
     LogError("This function is not available");
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
