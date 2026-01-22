@@ -13,6 +13,7 @@ file(GLOB SRCS_CUDA
 add_library(retinify-cuda STATIC ${SRCS_CUDA})
 
 find_package(CUDAToolkit REQUIRED)
+
 target_link_libraries(retinify-cuda
     PRIVATE
         CUDA::cudart

@@ -8,15 +8,18 @@
 
 namespace retinify
 {
+static constexpr std::uint32_t kBlockW = 16;
+static constexpr std::uint32_t kBlockH = 16;
+
 struct Matrix4x4f
 {
     float4 rows[4];
 };
 
-__device__ __forceinline__ float DotRow(const Matrix4x4f &matrix, int row, float u, float v, float disparity)
+__device__ __forceinline__ float DotRow(const Matrix4x4f &matrix, int row, float x, float y, float z)
 {
     const float4 r = matrix.rows[row];
-    return (r.x * u) + (r.y * v) + (r.z * disparity) + r.w;
+    return (r.x * x) + (r.y * y) + (r.z * z) + r.w;
 }
 
 __host__ __device__ __forceinline__ std::uint32_t DivUp(std::uint32_t value, std::uint32_t divisor)

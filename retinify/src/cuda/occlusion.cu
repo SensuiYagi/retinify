@@ -10,17 +10,9 @@
 #include <cooperative_groups/reduce.h>
 #include <cooperative_groups/scan.h>
 #include <cstdint>
-#include <cstdio>
 #include <cuda_runtime.h>
 #include <limits>
 #include <thrust/functional.h>
-
-#ifndef OCCL_BLOCK_W
-#define OCCL_BLOCK_W 16
-#endif
-#ifndef OCCL_BLOCK_H
-#define OCCL_BLOCK_H 16
-#endif
 
 namespace retinify
 {
@@ -38,7 +30,7 @@ __global__ void DisparityOcclusionFilterKernel(const float *__restrict__ leftDis
     const int blockWidth = static_cast<int>(blockDim.x);
 
     cooperative_groups::thread_block blockGroup = cooperative_groups::this_thread_block();
-    cooperative_groups::thread_block_tile<OCCL_BLOCK_W> rowGroup = cooperative_groups::tiled_partition<OCCL_BLOCK_W>(blockGroup);
+    cooperative_groups::thread_block_tile<kBlockW> rowGroup = cooperative_groups::tiled_partition<kBlockW>(blockGroup);
 
     if (localX == 0)
     {
@@ -113,42 +105,41 @@ __global__ void DisparityOcclusionFilterKernel(const float *__restrict__ leftDis
 
 cudaError_t cudaDisparityOcclusionFilter(const float *leftDisparity, std::size_t leftDisparityStride, //
                                          float *outputDisparity, std::size_t outputDisparityStride,   //
-                                         std::uint32_t disparityWidth, std::uint32_t disparityHeight, //
-                                         cudaStream_t stream)
+                                         std::uint32_t disparityWidth, std::uint32_t disparityHeight, cudaStream_t stream)
 {
     if (leftDisparity == nullptr || outputDisparity == nullptr)
     {
-        std::printf("Input pointer is null.\n");
         return cudaErrorInvalidValue;
     }
 
-    if (disparityWidth == 0 || disparityHeight == 0)
+    if (disparityWidth == 0U || disparityHeight == 0U)
     {
-        std::printf("Input size must be positive.\n");
         return cudaErrorInvalidValue;
     }
 
     if ((leftDisparityStride % sizeof(float)) != 0 || (outputDisparityStride % sizeof(float)) != 0)
     {
-        std::printf("Stride must be a multiple of sizeof(float).\n");
         return cudaErrorInvalidValue;
     }
 
-    if (disparityWidth > static_cast<std::uint32_t>(std::numeric_limits<int>::max()))
+    const std::size_t requiredLeftDisparityStride = static_cast<std::size_t>(disparityWidth) * sizeof(float);
+    if (leftDisparityStride < requiredLeftDisparityStride)
     {
-        std::printf("Disparity width is too large for internal indexing.\n");
         return cudaErrorInvalidValue;
     }
 
-    dim3 block(OCCL_BLOCK_W, OCCL_BLOCK_H, 1);
-    const std::uint32_t gridY = DivUp(disparityHeight, static_cast<std::uint32_t>(block.y));
-    dim3 grid(1, gridY, 1);
+    const std::size_t requiredOutputDisparityStride = static_cast<std::size_t>(disparityWidth) * sizeof(float);
+    if (outputDisparityStride < requiredOutputDisparityStride)
+    {
+        return cudaErrorInvalidValue;
+    }
+
+    dim3 block(kBlockW, kBlockH, 1);
+    dim3 grid(1, DivUp(disparityHeight, static_cast<std::uint32_t>(block.y)), 1);
 
     const std::size_t sharedBytes = static_cast<std::size_t>(block.y) * sizeof(float);
 
-    DisparityOcclusionFilterKernel<<<grid, block, sharedBytes, stream>>>(leftDisparity, leftDisparityStride,     //
-                                                                         outputDisparity, outputDisparityStride, //
-                                                                         disparityWidth, disparityHeight);
+    DisparityOcclusionFilterKernel<<<grid, block, sharedBytes, stream>>>(leftDisparity, leftDisparityStride, outputDisparity, outputDisparityStride, disparityWidth, disparityHeight);
 
     return cudaGetLastError();
 }

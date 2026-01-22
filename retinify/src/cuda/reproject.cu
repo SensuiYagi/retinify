@@ -7,23 +7,12 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <cuda_runtime.h>
-
-#ifndef REPROJECT_BLOCK_W
-#define REPROJECT_BLOCK_W 16
-#endif
-
-#ifndef REPROJECT_BLOCK_H
-#define REPROJECT_BLOCK_H 16
-#endif
 
 namespace retinify
 {
-__global__ void ReprojectTo3dKernel(const float *__restrict__ disparity, std::size_t disparityStride, //
-                                    float *__restrict__ points3d, std::size_t points3dStride,         //
-                                    std::uint32_t width, std::uint32_t height,                        //
-                                    Matrix4x4f reprojectionMatrix)
+__global__ void ReprojectTo3dKernel(const float *__restrict__ disparity, std::size_t disparityStride, float *__restrict__ points3d, std::size_t points3dStride, //
+                                    std::uint32_t width, std::uint32_t height, Matrix4x4f reprojectionMatrix)
 {
     const std::uint32_t x = static_cast<std::uint32_t>(blockIdx.x) * static_cast<std::uint32_t>(blockDim.x) + static_cast<std::uint32_t>(threadIdx.x);
     const std::uint32_t y = static_cast<std::uint32_t>(blockIdx.y) * static_cast<std::uint32_t>(blockDim.y) + static_cast<std::uint32_t>(threadIdx.y);
@@ -69,53 +58,42 @@ __global__ void ReprojectTo3dKernel(const float *__restrict__ disparity, std::si
     pointRow[idx + 2] = outZ;
 }
 
-cudaError_t cudaReprojectTo3d(const float *disparity, std::size_t disparityStride, //
-                              float *points3d, std::size_t points3dStride,         //
-                              std::uint32_t width, std::uint32_t height,           //
-                              const float *reprojectionMatrix,                     //
-                              cudaStream_t stream)
+cudaError_t cudaReprojectTo3d(const float *disparity, std::size_t disparityStride, float *points3d, std::size_t points3dStride, //
+                              std::uint32_t width, std::uint32_t height, const float *reprojectionMatrix, cudaStream_t stream)
 {
     if (disparity == nullptr || points3d == nullptr || reprojectionMatrix == nullptr)
     {
-        std::printf("Input pointer is null.\n");
         return cudaErrorInvalidValue;
     }
 
     if (width == 0U || height == 0U)
     {
-        std::printf("Input size must be positive.\n");
         return cudaErrorInvalidValue;
     }
 
     if ((disparityStride % sizeof(float)) != 0U || (points3dStride % sizeof(float)) != 0U)
     {
-        std::printf("Stride must be a multiple of sizeof(float).\n");
         return cudaErrorInvalidValue;
     }
 
     const std::size_t requiredDisparityStride = static_cast<std::size_t>(width) * sizeof(float);
     if (disparityStride < requiredDisparityStride)
     {
-        std::printf("Disparity stride is too small.\n");
         return cudaErrorInvalidValue;
     }
 
     const std::size_t requiredPointsStride = static_cast<std::size_t>(width) * 3U * sizeof(float);
     if (points3dStride < requiredPointsStride)
     {
-        std::printf("Point stride is too small.\n");
         return cudaErrorInvalidValue;
     }
 
     const Matrix4x4f matrix = MakeMatrix4x4f(reprojectionMatrix);
 
-    dim3 block(REPROJECT_BLOCK_W, REPROJECT_BLOCK_H, 1);
+    dim3 block(kBlockW, kBlockH, 1);
     dim3 grid(DivUp(width, static_cast<std::uint32_t>(block.x)), DivUp(height, static_cast<std::uint32_t>(block.y)), 1);
 
-    ReprojectTo3dKernel<<<grid, block, 0, stream>>>(disparity, disparityStride, //
-                                                    points3d, points3dStride,   //
-                                                    width, height,              //
-                                                    matrix);
+    ReprojectTo3dKernel<<<grid, block, 0, stream>>>(disparity, disparityStride, points3d, points3dStride, width, height, matrix);
 
     return cudaGetLastError();
 }
