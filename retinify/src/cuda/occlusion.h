@@ -9,8 +9,5 @@
 
 namespace retinify
 {
-cudaError_t cudaDisparityOcclusionFilter(const float *leftDisparity, std::size_t leftDisparityStride, //
-                                         float *outputDisparity, std::size_t outputDisparityStride,   //
-                                         std::uint32_t disparityWidth, std::uint32_t disparityHeight, //
-                                         cudaStream_t stream);
+cudaError_t cudaDisparityOcclusionFilter(const float *leftDisparity, std::size_t leftDisparityStride, float *outputDisparity, std::size_t outputDisparityStride, std::uint32_t disparityWidth, std::uint32_t disparityHeight, cudaStream_t stream);
 } // namespace retinify
