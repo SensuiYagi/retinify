@@ -12,7 +12,7 @@
 namespace retinify
 {
 /// @brief
-/// Logging verbosity levels for retinify
+/// Logging verbosity levels
 enum class LogLevel : std::uint8_t
 {
     /// @brief
@@ -46,6 +46,30 @@ RETINIFY_API auto GetLogLevel() noexcept -> LogLevel;
 /// @param level
 /// The new log level to apply
 RETINIFY_API void SetLogLevel(LogLevel level) noexcept;
+
+/// @brief
+/// Logging source location options
+enum class LogLocation
+{
+    /// @brief
+    /// No source location
+    NONE,
+    /// @brief
+    /// Function name
+    FUNCTION,
+};
+
+/// @brief
+/// Returns the current log location setting
+/// @return
+/// The current log location setting
+RETINIFY_API auto GetLogLocation() noexcept -> LogLocation;
+
+/// @brief
+/// Sets the log location setting
+/// @param location
+/// The new log location setting to apply
+RETINIFY_API void SetLogLocation(LogLocation location) noexcept;
 
 /// @brief
 /// Logs a debug message
