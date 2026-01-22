@@ -348,8 +348,7 @@ enum class BaselineAxis : std::uint8_t
     return Exp(Multiply(cross, scale));
 }
 
-static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, //
-                                  double newFocalLength, double width, double height) noexcept -> Point2d
+static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, double newFocalLength, double width, double height) noexcept -> Point2d
 {
     const std::array<Point2d, 4> imageCorners{Point2d{0.0, 0.0}, Point2d{width - 1.0, 0.0}, Point2d{0.0, height - 1.0}, Point2d{width - 1.0, height - 1.0}};
 
@@ -415,10 +414,7 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
     return index == 0 || index == lastIndex;
 }
 
-static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Distortion &distortion,           //
-                                       const Mat3x3d &rectificationRotation, const Mat3x3d &newCameraMatrix, //
-                                       std::uint32_t imageWidth, std::uint32_t imageHeight,                  //
-                                       Rect2d &inner, Rect2d &outer) noexcept
+static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectificationRotation, const Mat3x3d &newCameraMatrix, std::uint32_t imageWidth, std::uint32_t imageHeight, Rect2d &inner, Rect2d &outer) noexcept
 {
     constexpr int kGridSize = 9;
     const int lastIndex = kGridSize - 1;
@@ -527,11 +523,7 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
     }
 }
 
-[[nodiscard]] static auto ComputeAlphaScale(const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectificationRotation1, //
-                                            const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rectificationRotation2, //
-                                            double focalLength, const Point2d &principal1, const Point2d &principal2,                            //
-                                            std::uint32_t imageWidth, std::uint32_t imageHeight,                                                 //
-                                            double alpha) noexcept -> double
+[[nodiscard]] static auto ComputeAlphaScale(const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectificationRotation1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rectificationRotation2, double focalLength, const Point2d &principal1, const Point2d &principal2, std::uint32_t imageWidth, std::uint32_t imageHeight, double alpha) noexcept -> double
 {
     if (alpha < 0.0)
     {
@@ -590,13 +582,7 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
 }
 } // namespace
 
-auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, //
-                   const Intrinsics &intrinsics2, const Distortion &distortion2, //
-                   const Mat3x3d &rotation, const Vec3d &translation,            //
-                   std::uint32_t imageWidth, std::uint32_t imageHeight,          //
-                   Mat3x3d &rotation1, Mat3x3d &rotation2,                       //
-                   Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2,       //
-                   Mat4x4d &mappingMatrix, double alpha) noexcept -> Status
+auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rotation, const Vec3d &translation, std::uint32_t imageWidth, std::uint32_t imageHeight, Mat3x3d &rotation1, Mat3x3d &rotation2, Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2, Mat4x4d &reprojectionMatrix, double alpha) noexcept -> Status
 {
     if ((imageWidth == 0U) || (imageHeight == 0U))
     {
@@ -642,23 +628,19 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
         projectionMatrix2[1][3] = translationOffset;
     }
 
-    mappingMatrix = Mat4x4d{};
-    mappingMatrix[0][0] = 1.0;
-    mappingMatrix[1][1] = 1.0;
-    mappingMatrix[0][3] = -rectifiedPrincipal1[0];
-    mappingMatrix[1][3] = -rectifiedPrincipal1[1];
-    mappingMatrix[2][3] = newFocalLength;
-    mappingMatrix[3][2] = (std::fabs(baselineComponent) > kEpsilon) ? (-1.0 / baselineComponent) : 0.0;
-    mappingMatrix[3][3] = 0.0;
+    reprojectionMatrix = Mat4x4d{};
+    reprojectionMatrix[0][0] = 1.0;
+    reprojectionMatrix[1][1] = 1.0;
+    reprojectionMatrix[0][3] = -rectifiedPrincipal1[0];
+    reprojectionMatrix[1][3] = -rectifiedPrincipal1[1];
+    reprojectionMatrix[2][3] = newFocalLength;
+    reprojectionMatrix[3][2] = (std::fabs(baselineComponent) > kEpsilon) ? (-1.0 / baselineComponent) : 0.0;
+    reprojectionMatrix[3][3] = 0.0;
 
     return Status{};
 }
 
-auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, //
-                             const Mat3x3d &rotation, const Mat3x4d &projectionMatrix,   //
-                             std::uint32_t imageWidth, std::uint32_t imageHeight,        //
-                             float *mapX, std::size_t mapXStride,                        //
-                             float *mapY, std::size_t mapYStride) noexcept -> Status
+auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rotation, const Mat3x4d &projectionMatrix, std::uint32_t imageWidth, std::uint32_t imageHeight, float *mapX, std::size_t mapXStride, float *mapY, std::size_t mapYStride) noexcept -> Status
 {
     if (mapX == nullptr || mapY == nullptr)
     {
@@ -736,9 +718,7 @@ auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &dis
     return Status{};
 }
 
-auto InitIdentityMap(float *mapX, std::size_t mapXStride, //
-                     float *mapY, std::size_t mapYStride, //
-                     std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status
+auto InitIdentityMap(float *mapX, std::size_t mapXStride, float *mapY, std::size_t mapYStride, std::size_t imageWidth, std::size_t imageHeight) noexcept -> Status
 {
     if (mapX == nullptr || mapY == nullptr)
     {
