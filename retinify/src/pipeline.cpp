@@ -5,6 +5,7 @@
 #include "mat.hpp"
 #include "session.hpp"
 #include "stream.hpp"
+#include "summary.hpp"
 
 #include "retinify/retinifyModels.hpp"
 
@@ -54,6 +55,8 @@ class Pipeline::Impl
 
     auto Initialize(std::uint32_t imageWidth, std::uint32_t imageHeight, PixelFormat pixelFormat, DepthMode depthMode, const CalibrationParameters &calibrationParameters) noexcept -> Status
     {
+        LogSoftwareSummary();
+
         Status status;
 
         if ((imageWidth <= 0) || (imageHeight <= 0))
