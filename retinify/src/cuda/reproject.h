@@ -9,9 +9,5 @@
 
 namespace retinify
 {
-cudaError_t cudaReprojectTo3d(const float *disparity, std::size_t disparityStride, //
-                              float *points3d, std::size_t points3dStride,         //
-                              std::uint32_t width, std::uint32_t height,           //
-                              const float *reprojectionQ,                          //
-                              cudaStream_t stream);
+cudaError_t cudaReprojectTo3d(const float *disparity, std::size_t disparityStride, float *points3d, std::size_t points3dStride, std::uint32_t width, std::uint32_t height, const float *reprojectionMatrix, cudaStream_t stream);
 } // namespace retinify
