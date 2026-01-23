@@ -13,8 +13,8 @@ class NoCopyMove
     NoCopyMove() = default;
     ~NoCopyMove() = default;
     NoCopyMove(const NoCopyMove &) = delete;
-    NoCopyMove &operator=(const NoCopyMove &) = delete;
+    auto operator=(const NoCopyMove &) -> NoCopyMove & = delete;
     NoCopyMove(NoCopyMove &&) = delete;
-    NoCopyMove &operator=(NoCopyMove &&) = delete;
+    auto operator=(NoCopyMove &&) -> NoCopyMove & = delete;
 };
 } // namespace retinify
