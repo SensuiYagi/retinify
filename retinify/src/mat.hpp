@@ -6,6 +6,7 @@
 #include "stream.hpp"
 
 #include "retinify/attributes.hpp"
+#include "retinify/constraints.hpp"
 #include "retinify/status.hpp"
 
 #include <array>
@@ -23,15 +24,11 @@ enum class MatLocation
     HOST,
 };
 
-class RETINIFY_API Mat
+class RETINIFY_API Mat : public NoCopyMove
 {
   public:
     Mat() noexcept = default;
     ~Mat() noexcept;
-    Mat(const Mat &) = delete;
-    auto operator=(const Mat &) -> Mat & = delete;
-    Mat(Mat &&other) noexcept = delete;
-    auto operator=(Mat &&other) noexcept -> Mat & = delete;
     [[nodiscard]] auto Allocate(std::size_t rows, std::size_t cols, std::size_t channels, std::size_t bytesPerElement, MatLocation location) noexcept -> Status;
     [[nodiscard]] auto Free() noexcept -> Status;
     [[nodiscard]] auto Upload(const void *hostData, std::size_t hostStride, Stream &stream) const noexcept -> Status;
