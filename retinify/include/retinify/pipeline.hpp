@@ -42,7 +42,7 @@ enum class DepthMode : std::uint8_t
 
 /// @brief
 /// A `retinify::Pipeline` provides an interface for running a stereo matching
-class RETINIFY_API Pipeline : private NoCopyMove
+class RETINIFY_API Pipeline : public NoCopyMove
 {
   public:
     Pipeline() noexcept;
