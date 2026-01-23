@@ -49,26 +49,22 @@ auto ResizeImage8U(const Mat &src, Mat &dst, Stream &stream) noexcept -> Status
 
     if (src.Channels() == 1)
     {
-        status = nppiResize_8u_C1R_Ctx(srcData, srcStride, //
-                                       srcSize, srcRoi,    //
-                                       dstData, dstStride, //
-                                       dstSize, dstRoi,    //
-                                       NPPI_INTER_LINEAR, stream.GetNppStreamContext());
-    }
-    else // src.Channels() == 3
-    {
-        status = nppiResize_8u_C3R_Ctx(srcData, srcStride, //
-                                       srcSize, srcRoi,    //
-                                       dstData, dstStride, //
-                                       dstSize, dstRoi,    //
-                                       NPPI_INTER_LINEAR, stream.GetNppStreamContext());
+        status = nppiResize_8u_C1R_Ctx(srcData, srcStride, srcSize, srcRoi, dstData, dstStride, dstSize, dstRoi, NPPI_INTER_LINEAR, stream.GetNppStreamContext());
+        if (status != NPP_SUCCESS)
+        {
+            LogError("nppiResize_8u_C1R failed");
+            return Status{StatusCategory::CUDA, StatusCode::FAIL};
+        }
+
+        return Status{};
     }
 
+    status = nppiResize_8u_C3R_Ctx(srcData, srcStride, srcSize, srcRoi, dstData, dstStride, dstSize, dstRoi, NPPI_INTER_LINEAR, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
-        LogError(src.Channels() == 1 ? "nppiResize_8u_C1R failed" : "nppiResize_8u_C3R failed");
+        LogError("nppiResize_8u_C3R failed");
         return Status{StatusCategory::CUDA, StatusCode::FAIL};
-    };
+    }
 
     return Status{};
 #else
@@ -104,12 +100,7 @@ auto ResizeDisparity32FC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> 
     const auto srcRoi = NppiRect{0, 0, srcSize.width, srcSize.height};
     const auto dstRoi = NppiRect{0, 0, dstSize.width, dstSize.height};
 
-    NppStatus status = nppiResize_32f_C1R_Ctx(srcData, srcStride, //
-                                              srcSize, srcRoi,    //
-                                              dstData, dstStride, //
-                                              dstSize, dstRoi,    //
-                                              NPPI_INTER_NN, stream.GetNppStreamContext());
-
+    NppStatus status = nppiResize_32f_C1R_Ctx(srcData, srcStride, srcSize, srcRoi, dstData, dstStride, dstSize, dstRoi, NPPI_INTER_NN, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiResize_32f_C1R failed");
@@ -117,11 +108,7 @@ auto ResizeDisparity32FC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> 
     }
 
     float value_scale = static_cast<float>(dst.Cols()) / static_cast<float>(src.Cols());
-    status = nppiMulC_32f_C1IR_Ctx(static_cast<Npp32f>(value_scale),                                  //
-                                   static_cast<Npp32f *>(dst.Data()), static_cast<int>(dst.Stride()), //
-                                   dstSize,                                                           //
-                                   stream.GetNppStreamContext());
-
+    status = nppiMulC_32f_C1IR_Ctx(static_cast<Npp32f>(value_scale), static_cast<Npp32f *>(dst.Data()), static_cast<int>(dst.Stride()), dstSize, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiMulC_32f_C1IR failed");
@@ -173,11 +160,7 @@ auto ConvertImage8UToC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> St
 
     if (src.Channels() == 1)
     {
-        NppStatus status = nppiCopy_8u_C1R_Ctx(srcData, srcStride, //
-                                               dstData, dstStride, //
-                                               srcSize,            //
-                                               stream.GetNppStreamContext());
-
+        NppStatus status = nppiCopy_8u_C1R_Ctx(srcData, srcStride, dstData, dstStride, srcSize, stream.GetNppStreamContext());
         if (status != NPP_SUCCESS)
         {
             LogError("nppiCopy_8u_C1R failed");
@@ -187,11 +170,7 @@ auto ConvertImage8UToC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> St
         return Status{};
     }
 
-    NppStatus status = nppiRGBToGray_8u_C3C1R_Ctx(srcData, srcStride, //
-                                                  dstData, dstStride, //
-                                                  srcSize,            //
-                                                  stream.GetNppStreamContext());
-
+    NppStatus status = nppiRGBToGray_8u_C3C1R_Ctx(srcData, srcStride, dstData, dstStride, srcSize, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiRGBToGray_8u_C3C1R failed");
@@ -235,11 +214,7 @@ auto Convert8UC1To32FC1(const Mat &src, Mat &dst, Stream &stream) noexcept -> St
     const auto dstStride = static_cast<int>(dst.Stride());
     const auto srcSize = NppiSize{static_cast<int>(src.Cols()), static_cast<int>(src.Rows())};
 
-    NppStatus status = nppiConvert_8u32f_C1R_Ctx(srcData, srcStride, //
-                                                 dstData, dstStride, //
-                                                 srcSize,            //
-                                                 stream.GetNppStreamContext());
-
+    NppStatus status = nppiConvert_8u32f_C1R_Ctx(srcData, srcStride, dstData, dstStride, srcSize, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiConvert_8u32f_C1R failed");
@@ -283,11 +258,7 @@ auto Convert8UC3To32FC3(const Mat &src, Mat &dst, Stream &stream) noexcept -> St
     const auto dstStride = static_cast<int>(dst.Stride());
     const auto srcSize = NppiSize{static_cast<int>(src.Cols()), static_cast<int>(src.Rows())};
 
-    NppStatus status = nppiConvert_8u32f_C3R_Ctx(srcData, srcStride, //
-                                                 dstData, dstStride, //
-                                                 srcSize,            //
-                                                 stream.GetNppStreamContext());
-
+    NppStatus status = nppiConvert_8u32f_C3R_Ctx(srcData, srcStride, dstData, dstStride, srcSize, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiConvert_8u32f_C3R failed");
@@ -325,12 +296,7 @@ auto DisparityOcclusionFilter32FC1(const Mat &src, Mat &dst, Stream &stream) noe
     }
 
 #ifdef BUILD_WITH_TENSORRT
-    cudaError_t error = cudaDisparityOcclusionFilter(static_cast<const float *>(src.Data()), src.Stride(), //
-                                                     static_cast<float *>(dst.Data()), dst.Stride(),       //
-                                                     static_cast<std::uint32_t>(src.Cols()),               //
-                                                     static_cast<std::uint32_t>(src.Rows()),               //
-                                                     stream.GetCudaStream());
-
+    cudaError_t error = cudaDisparityOcclusionFilter(static_cast<const float *>(src.Data()), src.Stride(), static_cast<float *>(dst.Data()), dst.Stride(), static_cast<std::uint32_t>(src.Cols()), static_cast<std::uint32_t>(src.Rows()), stream.GetCudaStream());
     if (error != cudaSuccess)
     {
         LogError("cudaDisparityOcclusionFilter failed");
@@ -414,11 +380,7 @@ auto RemapImage8U(const Mat &src, const Mat &mapX, const Mat &mapY, Mat &dst, St
 
     if (src.Channels() == 1)
     {
-        status = nppiRemap_8u_C1R_Ctx(srcData, srcSize, srcStride, srcRoi,    //
-                                      mapXData, mapXStep, mapYData, mapYStep, //
-                                      dstData, dstStride, dstSize,            //
-                                      NPPI_INTER_LINEAR, stream.GetNppStreamContext());
-
+        status = nppiRemap_8u_C1R_Ctx(srcData, srcSize, srcStride, srcRoi, mapXData, mapXStep, mapYData, mapYStep, dstData, dstStride, dstSize, NPPI_INTER_LINEAR, stream.GetNppStreamContext());
         if (status != NPP_SUCCESS)
         {
             LogError("nppiRemap_8u_C1R failed");
@@ -428,10 +390,7 @@ auto RemapImage8U(const Mat &src, const Mat &mapX, const Mat &mapY, Mat &dst, St
         return Status{};
     }
 
-    status = nppiRemap_8u_C3R_Ctx(srcData, srcSize, srcStride, srcRoi,                                 //
-                                  mapXData, mapXStep, mapYData, mapYStep, dstData, dstStride, dstSize, //
-                                  NPPI_INTER_LINEAR, stream.GetNppStreamContext());
-
+    status = nppiRemap_8u_C3R_Ctx(srcData, srcSize, srcStride, srcRoi, mapXData, mapXStep, mapYData, mapYStep, dstData, dstStride, dstSize, NPPI_INTER_LINEAR, stream.GetNppStreamContext());
     if (status != NPP_SUCCESS)
     {
         LogError("nppiRemap_8u_C3R failed");
@@ -450,7 +409,25 @@ auto RemapImage8U(const Mat &src, const Mat &mapX, const Mat &mapY, Mat &dst, St
 #endif
 }
 
-auto ReprojectDisparityTo3D(const Mat &disparity, Mat &points3d, const Mat4x4d &Q, Stream &stream) noexcept -> Status
+namespace
+{
+auto ConvertReprojectionMatrixToFloat(const Mat4x4d &src) noexcept -> std::array<float, 16>
+{
+    std::array<float, 16> dst{};
+
+    for (std::size_t row = 0; row < 4; ++row)
+    {
+        for (std::size_t col = 0; col < 4; ++col)
+        {
+            dst[row * 4 + col] = static_cast<float>(src[row][col]);
+        }
+    }
+
+    return dst;
+}
+} // namespace
+
+auto ReprojectDisparityTo3D(const Mat &disparity, Mat &points3d, const Mat4x4d &reprojectionMatrix, Stream &stream) noexcept -> Status
 {
     if (disparity.Empty() || points3d.Empty())
     {
@@ -477,22 +454,7 @@ auto ReprojectDisparityTo3D(const Mat &disparity, Mat &points3d, const Mat4x4d &
     }
 
 #ifdef BUILD_WITH_TENSORRT
-    float q[16];
-    for (std::size_t row = 0; row < 4; ++row)
-    {
-        for (std::size_t col = 0; col < 4; ++col)
-        {
-            q[row * 4 + col] = static_cast<float>(Q[row][col]);
-        }
-    }
-
-    cudaError_t error = cudaReprojectTo3d(static_cast<const float *>(disparity.Data()), disparity.Stride(), //
-                                          static_cast<float *>(points3d.Data()), points3d.Stride(),         //
-                                          static_cast<std::uint32_t>(disparity.Cols()),                     //
-                                          static_cast<std::uint32_t>(disparity.Rows()),                     //
-                                          q,                                                                //
-                                          stream.GetCudaStream());
-
+    cudaError_t error = cudaReprojectTo3d(static_cast<const float *>(disparity.Data()), disparity.Stride(), static_cast<float *>(points3d.Data()), points3d.Stride(), static_cast<std::uint32_t>(disparity.Cols()), static_cast<std::uint32_t>(disparity.Rows()), ConvertReprojectionMatrixToFloat(reprojectionMatrix).data(), stream.GetCudaStream());
     if (error != cudaSuccess)
     {
         LogError("cudaReprojectTo3d failed");
@@ -503,14 +465,14 @@ auto ReprojectDisparityTo3D(const Mat &disparity, Mat &points3d, const Mat4x4d &
 #else
     (void)disparity;
     (void)points3d;
-    (void)Q;
+    (void)reprojectionMatrix;
     (void)stream;
     LogError("This function is not available");
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
 #endif
 }
 
-auto DisparityToDepth32FC1(const Mat &disparity, Mat &depth, const Mat4x4d &Q, Stream &stream) noexcept -> Status
+auto DisparityToDepth32FC1(const Mat &disparity, Mat &depth, const Mat4x4d &reprojectionMatrix, Stream &stream) noexcept -> Status
 {
     if (disparity.Empty() || depth.Empty())
     {
@@ -537,22 +499,7 @@ auto DisparityToDepth32FC1(const Mat &disparity, Mat &depth, const Mat4x4d &Q, S
     }
 
 #ifdef BUILD_WITH_TENSORRT
-    float q[16];
-    for (std::size_t row = 0; row < 4; ++row)
-    {
-        for (std::size_t col = 0; col < 4; ++col)
-        {
-            q[row * 4 + col] = static_cast<float>(Q[row][col]);
-        }
-    }
-
-    cudaError_t error = cudaDisparityToDepth(static_cast<const float *>(disparity.Data()), disparity.Stride(), //
-                                             static_cast<float *>(depth.Data()), depth.Stride(),               //
-                                             static_cast<std::uint32_t>(disparity.Cols()),                     //
-                                             static_cast<std::uint32_t>(disparity.Rows()),                     //
-                                             q,                                                                //
-                                             stream.GetCudaStream());
-
+    cudaError_t error = cudaDisparityToDepth(static_cast<const float *>(disparity.Data()), disparity.Stride(), static_cast<float *>(depth.Data()), depth.Stride(), static_cast<std::uint32_t>(disparity.Cols()), static_cast<std::uint32_t>(disparity.Rows()), ConvertReprojectionMatrixToFloat(reprojectionMatrix).data(), stream.GetCudaStream());
     if (error != cudaSuccess)
     {
         LogError("cudaDisparityToDepth failed");
@@ -563,7 +510,7 @@ auto DisparityToDepth32FC1(const Mat &disparity, Mat &depth, const Mat4x4d &Q, S
 #else
     (void)disparity;
     (void)depth;
-    (void)Q;
+    (void)reprojectionMatrix;
     (void)stream;
     LogError("This function is not available");
     return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
