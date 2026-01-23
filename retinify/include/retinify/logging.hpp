@@ -49,7 +49,7 @@ RETINIFY_API void SetLogLevel(LogLevel level) noexcept;
 
 /// @brief
 /// Logging source location options
-enum class LogLocation
+enum class LogLocation : std::uint8_t
 {
     /// @brief
     /// No source location

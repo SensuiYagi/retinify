@@ -4,6 +4,7 @@
 #pragma once
 
 #include "retinify/attributes.hpp"
+#include "retinify/constraints.hpp"
 #include "retinify/status.hpp"
 
 #ifdef BUILD_WITH_TENSORRT
@@ -15,15 +16,11 @@
 
 namespace retinify
 {
-class RETINIFY_API Stream
+class RETINIFY_API Stream : public NoCopyMove
 {
   public:
     Stream() noexcept = default;
     ~Stream() noexcept;
-    Stream(const Stream &) = delete;
-    auto operator=(const Stream &) noexcept -> Stream & = delete;
-    Stream(Stream &&) noexcept = delete;
-    auto operator=(Stream &&) noexcept -> Stream & = delete;
     [[nodiscard]] auto Create() noexcept -> Status;
     [[nodiscard]] auto Destroy() noexcept -> Status;
     [[nodiscard]] auto Synchronize() const noexcept -> Status;

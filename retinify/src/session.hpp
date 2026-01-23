@@ -6,6 +6,7 @@
 #include "mat.hpp"
 #include "stream.hpp"
 
+#include "retinify/constraints.hpp"
 #include "retinify/status.hpp"
 
 #include <array>
@@ -30,15 +31,11 @@ constexpr int kEngineOptWidth = 640;
 constexpr int kEngineMaxHeight = 720;
 constexpr int kEngineMaxWidth = 1280;
 
-class RETINIFY_API Session
+class RETINIFY_API Session : public NoCopyMove
 {
   public:
     Session() noexcept = default;
     ~Session() noexcept = default;
-    Session(const Session &) = delete;
-    auto operator=(const Session &) noexcept -> Session & = delete;
-    Session(Session &&other) noexcept = delete;
-    auto operator=(Session &&other) noexcept -> Session & = delete;
     [[nodiscard]] auto Initialize(const char *modelPath) noexcept -> Status;
     [[nodiscard]] auto BindInput(const char *name, const Mat &mat) const noexcept -> Status;
     [[nodiscard]] auto BindOutput(const char *name, const Mat &mat) const noexcept -> Status;

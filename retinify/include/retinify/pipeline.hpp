@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "retinify/constraints.hpp"
 #include "retinify/geometry.hpp"
 #include "retinify/status.hpp"
 
@@ -41,15 +42,11 @@ enum class DepthMode : std::uint8_t
 
 /// @brief
 /// A `retinify::Pipeline` provides an interface for running a stereo matching
-class RETINIFY_API Pipeline
+class RETINIFY_API Pipeline : private NoCopyMove
 {
   public:
     Pipeline() noexcept;
     ~Pipeline() noexcept;
-    Pipeline(const Pipeline &) = delete;
-    auto operator=(const Pipeline &) noexcept -> Pipeline & = delete;
-    Pipeline(Pipeline &&) noexcept = delete;
-    auto operator=(Pipeline &&) noexcept -> Pipeline & = delete;
 
     /// @brief
     /// Initializes the stereo matching pipeline with the given image dimensions
