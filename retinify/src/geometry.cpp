@@ -16,23 +16,6 @@ constexpr inline double kEpsilon = 1e-12;
 constexpr inline double kPi = 3.141592653589793;
 constexpr inline std::size_t kMat33RowCount = 3;
 constexpr inline std::size_t kMat33ColCount = 3;
-
-[[nodiscard]] double Square(double value) noexcept
-{
-    return value * value;
-}
-
-[[nodiscard]] double Reciprocal(double value, double fallback) noexcept
-{
-    return (std::fabs(value) > kEpsilon) ? (1.0 / value) : fallback;
-}
-
-[[nodiscard]] constexpr double EvaluateRadialPolynomial(double radiusSquared, double k1, double k2, double k3) noexcept
-{
-    const double radiusFourth = radiusSquared * radiusSquared;
-    const double radiusSixth = radiusFourth * radiusSquared;
-    return 1.0 + k1 * radiusSquared + k2 * radiusFourth + k3 * radiusSixth;
-}
 } // namespace
 
 auto Identity() noexcept -> Mat3x3d
@@ -44,12 +27,9 @@ auto Identity() noexcept -> Mat3x3d
 
 auto Determinant(const Mat3x3d &mat) noexcept -> double
 {
-    const auto &row0 = mat[0];
-    const auto &row1 = mat[1];
-    const auto &row2 = mat[2];
-    return row0[0] * (row1[1] * row2[2] - row1[2] * row2[1]) - //
-           row0[1] * (row1[0] * row2[2] - row1[2] * row2[0]) + //
-           row0[2] * (row1[0] * row2[1] - row1[1] * row2[0]);
+    return mat[0][0] * (mat[1][1] * mat[2][2] - mat[1][2] * mat[2][1]) - //
+           mat[0][1] * (mat[1][0] * mat[2][2] - mat[1][2] * mat[2][0]) + //
+           mat[0][2] * (mat[1][0] * mat[2][1] - mat[1][1] * mat[2][0]);
 }
 
 auto Transpose(const Mat3x3d &mat) noexcept -> Mat3x3d
@@ -244,64 +224,26 @@ auto Log(const Mat3x3d &mat) noexcept -> Vec3d
     return Multiply(skewVector, scale);
 }
 
-auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
-{
-    const double invFocalX = Reciprocal(intrinsics.fx, 1.0);
-    const double invFocalY = Reciprocal(intrinsics.fy, 1.0);
-
-    const double normalizedX = (point[0] - intrinsics.cx) * invFocalX;
-    const double normalizedY = (point[1] - intrinsics.cy) * invFocalY;
-
-    double undistortedX = normalizedX;
-    double undistortedY = normalizedY;
-
-    constexpr int kIterationCount = 5;
-    for (int iter = 0; iter < kIterationCount; ++iter)
-    {
-        const double radiusSquared = Square(undistortedX) + Square(undistortedY);
-        const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
-        const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
-        const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
-        const double radialScale = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
-
-        const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
-        const double undistortedXSquared = Square(undistortedX);
-        const double undistortedYSquared = Square(undistortedY);
-        const double deltaX = distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
-        const double deltaY = distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
-
-        undistortedX = (normalizedX - deltaX) * radialScale;
-        undistortedY = (normalizedY - deltaY) * radialScale;
-    }
-    return {undistortedX, undistortedY};
-}
-
-auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
-{
-    const double undistortedX = point[0];
-    const double undistortedY = point[1];
-
-    const double radiusSquared = Square(undistortedX) + Square(undistortedY);
-    const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
-    const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
-    const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
-    const double radial = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
-
-    const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
-    const double undistortedXSquared = Square(undistortedX);
-    const double undistortedYSquared = Square(undistortedY);
-    const double deltaX = distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
-    const double deltaY = distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
-
-    const double distortedX = undistortedX * radial + deltaX;
-    const double distortedY = undistortedY * radial + deltaY;
-
-    return {distortedX * intrinsics.fx + intrinsics.cx, distortedY * intrinsics.fy + intrinsics.cy};
-}
-
 namespace
 {
-[[nodiscard]] static auto ComputeRectifyingRotation(const Mat3x3d &rotation) noexcept -> Mat3x3d
+[[nodiscard]] auto Square(double value) noexcept -> double
+{
+    return value * value;
+}
+
+[[nodiscard]] auto Reciprocal(double value, double fallback) noexcept -> double
+{
+    return (std::fabs(value) > kEpsilon) ? (1.0 / value) : fallback;
+}
+
+[[nodiscard]] auto ComputeRadialDistortionScale(double radiusSquared, double coeff2, double coeff4, double coeff6) noexcept -> double
+{
+    const double radiusFourth = radiusSquared * radiusSquared;
+    const double radiusSixth = radiusFourth * radiusSquared;
+    return 1.0 + coeff2 * radiusSquared + coeff4 * radiusFourth + coeff6 * radiusSixth;
+}
+
+[[nodiscard]] auto ComputeInverseSqrtRotation(const Mat3x3d &rotation) noexcept -> Mat3x3d
 {
     const Vec3d omega = Log(rotation);
     return Exp(Multiply(omega, -0.5));
@@ -313,29 +255,29 @@ enum class BaselineAxis : std::uint8_t
     Y = 1
 };
 
-[[nodiscard]] constexpr auto ToAxisIndex(BaselineAxis axis) noexcept -> std::uint8_t
-{
-    return static_cast<std::uint8_t>(axis);
-}
-
-[[nodiscard]] static auto DetermineDominantAxis(const Vec3d &translation) noexcept -> BaselineAxis
+[[nodiscard]] auto DetermineBaselineAxis(const Vec3d &translation) noexcept -> BaselineAxis
 {
     return (std::fabs(translation[0]) > std::fabs(translation[1])) ? BaselineAxis::X : BaselineAxis::Y;
 }
 
-[[nodiscard]] static auto ComputeAxisVector(BaselineAxis axis, double direction) noexcept -> Vec3d
+[[nodiscard]] auto ToBaselineAxisIndex(BaselineAxis axis) noexcept -> std::uint8_t
+{
+    return static_cast<std::uint8_t>(axis);
+}
+
+[[nodiscard]] auto ComputeBaselineAxisVector(BaselineAxis axis, double direction) noexcept -> Vec3d
 {
     Vec3d axisVector{0.0, 0.0, 0.0};
-    axisVector[ToAxisIndex(axis)] = direction;
+    axisVector[ToBaselineAxisIndex(axis)] = direction;
     return axisVector;
 }
 
-[[nodiscard]] static auto ComputeBaselineAlignment(const Vec3d &translation, BaselineAxis axis) noexcept -> Mat3x3d
+[[nodiscard]] auto ComputeBaselineAxisAlignmentRotation(const Vec3d &translation, BaselineAxis axis) noexcept -> Mat3x3d
 {
-    const int axisIndex = ToAxisIndex(axis);
+    const int axisIndex = ToBaselineAxisIndex(axis);
     const double component = translation[axisIndex];
     const double length = Length(translation);
-    const Vec3d targetAxisVector = ComputeAxisVector(axis, component >= 0.0 ? 1.0 : -1.0);
+    const Vec3d targetAxisVector = ComputeBaselineAxisVector(axis, component >= 0.0 ? 1.0 : -1.0);
     const Vec3d cross = Cross(translation, targetAxisVector);
     const double crossLength = Length(cross);
     if (crossLength <= kEpsilon || length <= kEpsilon)
@@ -348,7 +290,7 @@ enum class BaselineAxis : std::uint8_t
     return Exp(Multiply(cross, scale));
 }
 
-static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, double newFocalLength, double width, double height) noexcept -> Point2d
+[[nodiscard]] auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, double newFocalLength, double width, double height) noexcept -> Point2d
 {
     const std::array<Point2d, 4> imageCorners{Point2d{0.0, 0.0}, Point2d{width - 1.0, 0.0}, Point2d{0.0, height - 1.0}, Point2d{width - 1.0, height - 1.0}};
 
@@ -369,7 +311,7 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
     return {halfWidth - accumulatedX * 0.25, halfHeight - accumulatedY * 0.25};
 }
 
-[[nodiscard]] static auto ComputeCameraMatrix(double focalLength, const Point2d &principalPoint) noexcept -> Mat3x3d
+[[nodiscard]] auto ComputeCameraMatrix(double focalLength, const Point2d &principalPoint) noexcept -> Mat3x3d
 {
     Mat3x3d camera{};
     camera[0][0] = focalLength;
@@ -384,7 +326,7 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
     return camera;
 }
 
-[[nodiscard]] static auto ComputeProjectionMatrix(double focalLength, const Point2d &principalPoint) noexcept -> Mat3x4d
+[[nodiscard]] auto ComputeProjectionMatrix(double focalLength, const Point2d &principalPoint) noexcept -> Mat3x4d
 {
     Mat3x4d projection{};
     projection[0][0] = focalLength;
@@ -395,7 +337,9 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
     return projection;
 }
 
-[[nodiscard]] double ComputeSafeRatio(double numerator, double denominator) noexcept
+constexpr double kInfinity = std::numeric_limits<double>::infinity();
+
+[[nodiscard]] auto ComputeRobustRatio(double numerator, double denominator) noexcept -> double
 {
     if (std::fabs(denominator) <= kEpsilon)
     {
@@ -404,46 +348,41 @@ static auto ComputePrincipalPoint(const Intrinsics &intrinsics, const Distortion
             return 0.0;
         }
         const double sign = (numerator >= 0.0) ? 1.0 : -1.0;
-        return sign * std::numeric_limits<double>::infinity();
+        return sign * kInfinity;
     }
     return numerator / denominator;
 }
 
-[[nodiscard]] constexpr bool IsBorderIndex(int index, int lastIndex) noexcept
+[[nodiscard]] constexpr auto IsBorderIndex(int index, int lastIndex) noexcept -> bool
 {
     return index == 0 || index == lastIndex;
 }
 
-static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectificationRotation, const Mat3x3d &newCameraMatrix, std::uint32_t imageWidth, std::uint32_t imageHeight, Rect2d &inner, Rect2d &outer) noexcept
+auto ComputeRectifiedInnerOuterRectangles(const Intrinsics &intrinsics, const Distortion &distortion, const Mat3x3d &rectifiedRotation, const Mat3x3d &newCameraMatrix, std::uint32_t imageWidth, std::uint32_t imageHeight, Rect2d &inner, Rect2d &outer) noexcept -> void
 {
     constexpr int kGridSize = 9;
-    const int lastIndex = kGridSize - 1;
+    constexpr int kLastIndex = kGridSize - 1;
     const double width = static_cast<double>(imageWidth);
     const double height = static_cast<double>(imageHeight);
     const double maxX = width - 1.0;
     const double maxY = height - 1.0;
-    const double stepX = (kGridSize > 1) ? (maxX / static_cast<double>(lastIndex)) : 0.0;
-    const double stepY = (kGridSize > 1) ? (maxY / static_cast<double>(lastIndex)) : 0.0;
+    const double stepX = (kGridSize > 1) ? (maxX / static_cast<double>(kLastIndex)) : 0.0;
+    const double stepY = (kGridSize > 1) ? (maxY / static_cast<double>(kLastIndex)) : 0.0;
 
-    double innerMinX = -std::numeric_limits<double>::infinity();
-    double innerMaxX = std::numeric_limits<double>::infinity();
-    double innerMinY = -std::numeric_limits<double>::infinity();
-    double innerMaxY = std::numeric_limits<double>::infinity();
-    double outerMinX = std::numeric_limits<double>::infinity();
-    double outerMaxX = -std::numeric_limits<double>::infinity();
-    double outerMinY = std::numeric_limits<double>::infinity();
-    double outerMaxY = -std::numeric_limits<double>::infinity();
+    double innerMinX = -kInfinity;
+    double innerMaxX = kInfinity;
+    double innerMinY = -kInfinity;
+    double innerMaxY = kInfinity;
+    double outerMinX = kInfinity;
+    double outerMaxX = -kInfinity;
+    double outerMinY = kInfinity;
+    double outerMaxY = -kInfinity;
 
-    const auto &row0 = newCameraMatrix[0];
-    const auto &row1 = newCameraMatrix[1];
-    const auto &row2 = newCameraMatrix[2];
-
-    const auto projectRectifiedPoint = [&](double rectifiedX, double rectifiedY) noexcept -> Point2d {
-        const double numeratorX = row0[0] * rectifiedX + row0[1] * rectifiedY + row0[2];
-        const double numeratorY = row1[0] * rectifiedX + row1[1] * rectifiedY + row1[2];
-        const double denominator = row2[0] * rectifiedX + row2[1] * rectifiedY + row2[2];
-        const double invDenominator = Reciprocal(denominator, 0.0);
-        const double scale = (invDenominator == 0.0) ? 1.0 : invDenominator;
+    const auto projectRectifiedNormalizedPoint = [&](double rectifiedNormalizedX, double rectifiedNormalizedY) noexcept -> Point2d {
+        const double numeratorX = newCameraMatrix[0][0] * rectifiedNormalizedX + newCameraMatrix[0][1] * rectifiedNormalizedY + newCameraMatrix[0][2];
+        const double numeratorY = newCameraMatrix[1][0] * rectifiedNormalizedX + newCameraMatrix[1][1] * rectifiedNormalizedY + newCameraMatrix[1][2];
+        const double denominator = newCameraMatrix[2][0] * rectifiedNormalizedX + newCameraMatrix[2][1] * rectifiedNormalizedY + newCameraMatrix[2][2];
+        const double scale = Reciprocal(denominator, 1.0);
         return {numeratorX * scale, numeratorY * scale};
     };
 
@@ -460,14 +399,17 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
         {
             innerMinX = std::max(innerMinX, mappedX);
         }
+
         if (onRightEdge)
         {
             innerMaxX = std::min(innerMaxX, mappedX);
         }
+
         if (onTopEdge)
         {
             innerMinY = std::max(innerMinY, mappedY);
         }
+
         if (onBottomEdge)
         {
             innerMaxY = std::min(innerMaxY, mappedY);
@@ -476,30 +418,30 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
 
     for (int gridY = 0; gridY < kGridSize; ++gridY)
     {
-        const bool onYBorder = IsBorderIndex(gridY, lastIndex);
+        const bool onYBorder = IsBorderIndex(gridY, kLastIndex);
         const bool onTopEdge = (gridY == 0);
-        const bool onBottomEdge = (gridY == lastIndex);
+        const bool onBottomEdge = (gridY == kLastIndex);
         const double pixelY = stepY * static_cast<double>(gridY);
 
         for (int gridX = 0; gridX < kGridSize; ++gridX)
         {
-            const bool onXBorder = IsBorderIndex(gridX, lastIndex);
+            const bool onXBorder = IsBorderIndex(gridX, kLastIndex);
             if (!onXBorder && !onYBorder)
             {
                 continue;
             }
 
             const double pixelX = stepX * static_cast<double>(gridX);
-            const Point2d undistorted = UndistortPoint(intrinsics, distortion, {pixelX, pixelY});
-            const Vec3d undistorted3D{undistorted[0], undistorted[1], 1.0};
-            const Vec3d rectified = Multiply(rectificationRotation, undistorted3D);
-            const double invDepth = Reciprocal(rectified[2], 0.0);
-            const double rectifiedX = rectified[0] * invDepth;
-            const double rectifiedY = rectified[1] * invDepth;
+            const Point2d undistortedPoint = UndistortPoint(intrinsics, distortion, {pixelX, pixelY});
+            const Vec3d undistortedPoint3D{undistortedPoint[0], undistortedPoint[1], 1.0};
+            const Vec3d rectifiedUndistortedPoint3D = Multiply(rectifiedRotation, undistortedPoint3D);
+            const double inverseDepth = Reciprocal(rectifiedUndistortedPoint3D[2], 0.0);
+            const double rectifiedNormalizedX = rectifiedUndistortedPoint3D[0] * inverseDepth;
+            const double rectifiedNormalizedY = rectifiedUndistortedPoint3D[1] * inverseDepth;
 
-            const Point2d mappedPoint = projectRectifiedPoint(rectifiedX, rectifiedY);
+            const Point2d mappedPoint = projectRectifiedNormalizedPoint(rectifiedNormalizedX, rectifiedNormalizedY);
             const bool onLeftEdge = (gridX == 0);
-            const bool onRightEdge = (gridX == lastIndex);
+            const bool onRightEdge = (gridX == kLastIndex);
             updateBoundaryExtents(mappedPoint, onLeftEdge, onRightEdge, onTopEdge, onBottomEdge);
         }
     }
@@ -523,7 +465,7 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
     }
 }
 
-[[nodiscard]] static auto ComputeAlphaScale(const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectificationRotation1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rectificationRotation2, double focalLength, const Point2d &principal1, const Point2d &principal2, std::uint32_t imageWidth, std::uint32_t imageHeight, double alpha) noexcept -> double
+[[nodiscard]] auto ComputeRectifiedFocalLengthScale(const Intrinsics &intrinsics1, const Distortion &distortion1, const Mat3x3d &rectifiedRotation1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rectifiedRotation2, double focalLength, const Point2d &principalPoint1, const Point2d &principalPoint2, std::uint32_t imageWidth, std::uint32_t imageHeight, double alpha) noexcept -> double
 {
     if (alpha < 0.0)
     {
@@ -532,15 +474,15 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
 
     const double clampedAlpha = std::clamp(alpha, 0.0, 1.0);
 
-    const Mat3x3d cameraMatrix1 = ComputeCameraMatrix(focalLength, principal1);
-    const Mat3x3d cameraMatrix2 = ComputeCameraMatrix(focalLength, principal2);
+    const Mat3x3d cameraMatrix1 = ComputeCameraMatrix(focalLength, principalPoint1);
+    const Mat3x3d cameraMatrix2 = ComputeCameraMatrix(focalLength, principalPoint2);
 
     Rect2d inner1{};
     Rect2d outer1{};
     Rect2d inner2{};
     Rect2d outer2{};
-    ComputeUndistortRectangles(intrinsics1, distortion1, rectificationRotation1, cameraMatrix1, imageWidth, imageHeight, inner1, outer1);
-    ComputeUndistortRectangles(intrinsics2, distortion2, rectificationRotation2, cameraMatrix2, imageWidth, imageHeight, inner2, outer2);
+    ComputeRectifiedInnerOuterRectangles(intrinsics1, distortion1, rectifiedRotation1, cameraMatrix1, imageWidth, imageHeight, inner1, outer1);
+    ComputeRectifiedInnerOuterRectangles(intrinsics2, distortion2, rectifiedRotation2, cameraMatrix2, imageWidth, imageHeight, inner2, outer2);
 
     const double width = static_cast<double>(imageWidth);
     const double height = static_cast<double>(imageHeight);
@@ -548,29 +490,29 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
     const auto computeInnerScale = [&](const Rect2d &inner, const Point2d &principal) noexcept -> double {
         const double cx = principal[0];
         const double cy = principal[1];
-        const double scaleLeft = ComputeSafeRatio(cx, cx - inner.x);
-        const double scaleRight = ComputeSafeRatio(width - 1.0 - cx, inner.x + inner.width - cx);
-        const double scaleTop = ComputeSafeRatio(cy, cy - inner.y);
-        const double scaleBottom = ComputeSafeRatio(height - 1.0 - cy, inner.y + inner.height - cy);
+        const double scaleLeft = ComputeRobustRatio(cx, cx - inner.x);
+        const double scaleRight = ComputeRobustRatio(width - 1.0 - cx, inner.x + inner.width - cx);
+        const double scaleTop = ComputeRobustRatio(cy, cy - inner.y);
+        const double scaleBottom = ComputeRobustRatio(height - 1.0 - cy, inner.y + inner.height - cy);
         return std::max(std::max(scaleLeft, scaleRight), std::max(scaleTop, scaleBottom));
     };
 
     const auto computeOuterScale = [&](const Rect2d &outer, const Point2d &principal) noexcept -> double {
         const double cx = principal[0];
         const double cy = principal[1];
-        const double scaleLeft = ComputeSafeRatio(cx, cx - outer.x);
-        const double scaleRight = ComputeSafeRatio(width - 1.0 - cx, outer.x + outer.width - cx);
-        const double scaleTop = ComputeSafeRatio(cy, cy - outer.y);
-        const double scaleBottom = ComputeSafeRatio(height - 1.0 - cy, outer.y + outer.height - cy);
+        const double scaleLeft = ComputeRobustRatio(cx, cx - outer.x);
+        const double scaleRight = ComputeRobustRatio(width - 1.0 - cx, outer.x + outer.width - cx);
+        const double scaleTop = ComputeRobustRatio(cy, cy - outer.y);
+        const double scaleBottom = ComputeRobustRatio(height - 1.0 - cy, outer.y + outer.height - cy);
         return std::min(std::min(scaleLeft, scaleRight), std::min(scaleTop, scaleBottom));
     };
 
-    const double innerScale1 = computeInnerScale(inner1, principal1);
-    const double innerScale2 = computeInnerScale(inner2, principal2);
+    const double innerScale1 = computeInnerScale(inner1, principalPoint1);
+    const double innerScale2 = computeInnerScale(inner2, principalPoint2);
     const double s0 = std::max(innerScale1, innerScale2);
 
-    const double outerScale1 = computeOuterScale(outer1, principal1);
-    const double outerScale2 = computeOuterScale(outer2, principal2);
+    const double outerScale1 = computeOuterScale(outer1, principalPoint1);
+    const double outerScale2 = computeOuterScale(outer2, principalPoint2);
     const double s1 = std::min(outerScale1, outerScale2);
 
     const double scale = s0 * (1.0 - clampedAlpha) + s1 * clampedAlpha;
@@ -582,7 +524,62 @@ static void ComputeUndistortRectangles(const Intrinsics &intrinsics, const Disto
 }
 } // namespace
 
-auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rotation, const Vec3d &translation, std::uint32_t imageWidth, std::uint32_t imageHeight, Mat3x3d &rotation1, Mat3x3d &rotation2, Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2, Mat4x4d &reprojectionMatrix, double alpha) noexcept -> Status
+auto UndistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
+{
+    const double inverseFocalX = Reciprocal(intrinsics.fx, 1.0);
+    const double inverseFocalY = Reciprocal(intrinsics.fy, 1.0);
+
+    const double normalizedX = (point[0] - intrinsics.cx) * inverseFocalX;
+    const double normalizedY = (point[1] - intrinsics.cy) * inverseFocalY;
+
+    double undistortedX = normalizedX;
+    double undistortedY = normalizedY;
+
+    constexpr int kIterationCount = 5;
+    for (int iter = 0; iter < kIterationCount; ++iter)
+    {
+        const double radiusSquared = Square(undistortedX) + Square(undistortedY);
+        const double radialNumerator = ComputeRadialDistortionScale(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
+        const double radialDenominator = ComputeRadialDistortionScale(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
+        const double inverseRadialDenominator = Reciprocal(radialDenominator, 0.0);
+        const double radialScale = (inverseRadialDenominator != 0.0) ? radialNumerator * inverseRadialDenominator : 1.0;
+
+        const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
+        const double undistortedXSquared = Square(undistortedX);
+        const double undistortedYSquared = Square(undistortedY);
+        const double deltaX = distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
+        const double deltaY = distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
+
+        undistortedX = (normalizedX - deltaX) * radialScale;
+        undistortedY = (normalizedY - deltaY) * radialScale;
+    }
+    return {undistortedX, undistortedY};
+}
+
+auto DistortPoint(const Intrinsics &intrinsics, const Distortion &distortion, const Point2d &point) noexcept -> Point2d
+{
+    const double undistortedX = point[0];
+    const double undistortedY = point[1];
+
+    const double radiusSquared = Square(undistortedX) + Square(undistortedY);
+    const double radialNumerator = ComputeRadialDistortionScale(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
+    const double radialDenominator = ComputeRadialDistortionScale(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
+    const double inverseRadialDenominator = Reciprocal(radialDenominator, 0.0);
+    const double radial = (inverseRadialDenominator != 0.0) ? radialNumerator * inverseRadialDenominator : 1.0;
+
+    const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
+    const double undistortedXSquared = Square(undistortedX);
+    const double undistortedYSquared = Square(undistortedY);
+    const double deltaX = distortion.p1 * twiceUndistortedXY + distortion.p2 * (radiusSquared + 2.0 * undistortedXSquared);
+    const double deltaY = distortion.p1 * (radiusSquared + 2.0 * undistortedYSquared) + distortion.p2 * twiceUndistortedXY;
+
+    const double distortedX = undistortedX * radial + deltaX;
+    const double distortedY = undistortedY * radial + deltaY;
+
+    return {distortedX * intrinsics.fx + intrinsics.cx, distortedY * intrinsics.fy + intrinsics.cy};
+}
+
+auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1, const Intrinsics &intrinsics2, const Distortion &distortion2, const Mat3x3d &rotation, const Vec3d &translation, std::uint32_t imageWidth, std::uint32_t imageHeight, Mat3x3d &rectifiedRotation1, Mat3x3d &rectifiedRotation2, Mat3x4d &projectionMatrix1, Mat3x4d &projectionMatrix2, Mat4x4d &reprojectionMatrix, double alpha) noexcept -> Status
 {
     if ((imageWidth == 0U) || (imageHeight == 0U))
     {
@@ -590,36 +587,35 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
         return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
     }
 
-    const Mat3x3d rectifyingRotation = ComputeRectifyingRotation(rotation);
-    const Vec3d rotatedTranslation = Multiply(rectifyingRotation, translation);
-    const BaselineAxis dominantAxis = DetermineDominantAxis(rotatedTranslation);
-    const Mat3x3d baselineAlignment = ComputeBaselineAlignment(rotatedTranslation, dominantAxis);
+    const Mat3x3d rectifyingRotation = ComputeInverseSqrtRotation(rotation);
+    const Vec3d rectifyingTranslation = Multiply(rectifyingRotation, translation);
+    const BaselineAxis baselineAxis = DetermineBaselineAxis(rectifyingTranslation);
+    const Mat3x3d baselineAlignmentRotation = ComputeBaselineAxisAlignmentRotation(rectifyingTranslation, baselineAxis);
+    const Mat3x3d inverseRectifyingRotation = Transpose(rectifyingRotation);
+    rectifiedRotation1 = Multiply(baselineAlignmentRotation, inverseRectifyingRotation);
+    rectifiedRotation2 = Multiply(baselineAlignmentRotation, rectifyingRotation);
 
-    const Mat3x3d rotationTranspose = Transpose(rectifyingRotation);
-    rotation1 = Multiply(baselineAlignment, rotationTranspose);
-    rotation2 = Multiply(baselineAlignment, rectifyingRotation);
-
-    const Vec3d rectifiedTranslation = Multiply(rotation2, translation);
+    const Vec3d rectifiedTranslation = Multiply(rectifiedRotation2, translation);
     const double width = static_cast<double>(imageWidth);
     const double height = static_cast<double>(imageHeight);
     const double newFocalScale = 0.5;
-    double newFocalLength = (dominantAxis == BaselineAxis::X) ? (intrinsics1.fy + intrinsics2.fy) * newFocalScale : (intrinsics1.fx + intrinsics2.fx) * newFocalScale;
+    double newFocalLength = (baselineAxis == BaselineAxis::X) ? (intrinsics1.fy + intrinsics2.fy) * newFocalScale : (intrinsics1.fx + intrinsics2.fx) * newFocalScale;
 
-    const Point2d principal1 = ComputePrincipalPoint(intrinsics1, distortion1, rotation1, newFocalLength, width, height);
-    const Point2d principal2 = ComputePrincipalPoint(intrinsics2, distortion2, rotation2, newFocalLength, width, height);
-    const Point2d principalAvg{0.5 * (principal1[0] + principal2[0]), 0.5 * (principal1[1] + principal2[1])};
+    const Point2d principalPoint1 = ComputePrincipalPoint(intrinsics1, distortion1, rectifiedRotation1, newFocalLength, width, height);
+    const Point2d principalPoint2 = ComputePrincipalPoint(intrinsics2, distortion2, rectifiedRotation2, newFocalLength, width, height);
+    const Point2d principalPointAvg{0.5 * (principalPoint1[0] + principalPoint2[0]), 0.5 * (principalPoint1[1] + principalPoint2[1])};
 
-    Point2d rectifiedPrincipal1 = principalAvg;
-    Point2d rectifiedPrincipal2 = principalAvg;
-    const double alphaScale = ComputeAlphaScale(intrinsics1, distortion1, rotation1, intrinsics2, distortion2, rotation2, newFocalLength, rectifiedPrincipal1, rectifiedPrincipal2, imageWidth, imageHeight, alpha);
-    newFocalLength *= alphaScale;
+    Point2d rectifiedPrincipalPoint1 = principalPointAvg;
+    Point2d rectifiedPrincipalPoint2 = principalPointAvg;
+    const double focalLengthScale = ComputeRectifiedFocalLengthScale(intrinsics1, distortion1, rectifiedRotation1, intrinsics2, distortion2, rectifiedRotation2, newFocalLength, rectifiedPrincipalPoint1, rectifiedPrincipalPoint2, imageWidth, imageHeight, alpha);
+    newFocalLength *= focalLengthScale;
 
-    projectionMatrix1 = ComputeProjectionMatrix(newFocalLength, rectifiedPrincipal1);
-    projectionMatrix2 = ComputeProjectionMatrix(newFocalLength, rectifiedPrincipal2);
+    projectionMatrix1 = ComputeProjectionMatrix(newFocalLength, rectifiedPrincipalPoint1);
+    projectionMatrix2 = ComputeProjectionMatrix(newFocalLength, rectifiedPrincipalPoint2);
 
-    const double baselineComponent = (dominantAxis == BaselineAxis::X) ? rectifiedTranslation[0] : rectifiedTranslation[1];
+    const double baselineComponent = (baselineAxis == BaselineAxis::X) ? rectifiedTranslation[0] : rectifiedTranslation[1];
     const double translationOffset = baselineComponent * newFocalLength;
-    if (dominantAxis == BaselineAxis::X)
+    if (baselineAxis == BaselineAxis::X)
     {
         projectionMatrix2[0][3] = translationOffset;
     }
@@ -631,8 +627,8 @@ auto StereoRectify(const Intrinsics &intrinsics1, const Distortion &distortion1,
     reprojectionMatrix = Mat4x4d{};
     reprojectionMatrix[0][0] = 1.0;
     reprojectionMatrix[1][1] = 1.0;
-    reprojectionMatrix[0][3] = -rectifiedPrincipal1[0];
-    reprojectionMatrix[1][3] = -rectifiedPrincipal1[1];
+    reprojectionMatrix[0][3] = -rectifiedPrincipalPoint1[0];
+    reprojectionMatrix[1][3] = -rectifiedPrincipalPoint1[1];
     reprojectionMatrix[2][3] = newFocalLength;
     reprojectionMatrix[3][2] = (std::fabs(baselineComponent) > kEpsilon) ? (-1.0 / baselineComponent) : 0.0;
     reprojectionMatrix[3][3] = 0.0;
@@ -670,8 +666,8 @@ auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &dis
     const Mat3x3d rotationInverse = Transpose(rotation);
     const auto &projectionRow0 = projectionMatrix[0];
     const auto &projectionRow1 = projectionMatrix[1];
-    const double invRectifiedFocalX = Reciprocal(projectionRow0[0], 0.0);
-    const double invRectifiedFocalY = Reciprocal(projectionRow1[1], 0.0);
+    const double inverseRectifiedFocalX = Reciprocal(projectionRow0[0], 0.0);
+    const double inverseRectifiedFocalY = Reciprocal(projectionRow1[1], 0.0);
     const double rectifiedPrincipalX = projectionRow0[2];
     const double rectifiedPrincipalY = projectionRow1[2];
 
@@ -684,22 +680,22 @@ auto InitUndistortRectifyMap(const Intrinsics &intrinsics, const Distortion &dis
         const std::size_t offsetY = static_cast<std::size_t>(v) * mapYStride;
         auto *mapXRow = reinterpret_cast<float *>(mapXBytes + offsetX);
         auto *mapYRow = reinterpret_cast<float *>(mapYBytes + offsetY);
-        const double rectifiedY = (static_cast<double>(v) - rectifiedPrincipalY) * invRectifiedFocalY;
+        const double rectifiedY = (static_cast<double>(v) - rectifiedPrincipalY) * inverseRectifiedFocalY;
         for (std::uint32_t u = 0; u < imageWidth; ++u)
         {
-            const double rectifiedX = (static_cast<double>(u) - rectifiedPrincipalX) * invRectifiedFocalX;
+            const double rectifiedX = (static_cast<double>(u) - rectifiedPrincipalX) * inverseRectifiedFocalX;
             const Vec3d rectifiedPoint{rectifiedX, rectifiedY, 1.0};
             const Vec3d cameraPoint = Multiply(rotationInverse, rectifiedPoint);
 
-            const double invDepth = Reciprocal(cameraPoint[2], 0.0);
-            const double undistortedX = cameraPoint[0] * invDepth;
-            const double undistortedY = cameraPoint[1] * invDepth;
+            const double inverseDepth = Reciprocal(cameraPoint[2], 0.0);
+            const double undistortedX = cameraPoint[0] * inverseDepth;
+            const double undistortedY = cameraPoint[1] * inverseDepth;
 
             const double radiusSquared = Square(undistortedX) + Square(undistortedY);
-            const double radialNumerator = EvaluateRadialPolynomial(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
-            const double radialDenominator = EvaluateRadialPolynomial(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
-            const double invRadialDenominator = Reciprocal(radialDenominator, 0.0);
-            const double radialScale = (invRadialDenominator != 0.0) ? radialNumerator * invRadialDenominator : 1.0;
+            const double radialNumerator = ComputeRadialDistortionScale(radiusSquared, distortion.k1, distortion.k2, distortion.k3);
+            const double radialDenominator = ComputeRadialDistortionScale(radiusSquared, distortion.k4, distortion.k5, distortion.k6);
+            const double inverseRadialDenominator = Reciprocal(radialDenominator, 0.0);
+            const double radialScale = (inverseRadialDenominator != 0.0) ? radialNumerator * inverseRadialDenominator : 1.0;
 
             const double twiceUndistortedXY = 2.0 * undistortedX * undistortedY;
             const double undistortedXSquared = Square(undistortedX);
