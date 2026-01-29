@@ -3,6 +3,7 @@
 
 #include "retinify/io.hpp"
 #include "retinify/logging.hpp"
+#include "retinify/nothrow.hpp"
 
 #include <array>
 #include <cstdint>
@@ -275,13 +276,12 @@ template <std::size_t Rows, std::size_t Cols> [[nodiscard]] auto DeserializeMatr
 
 auto SaveCalibrationParameters(const char *filename, const CalibrationParameters &parameters) noexcept -> Status
 {
-    if (IsFilenameEmpty(filename))
-    {
-        return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
-    }
+    return NoThrow([&]() -> Status {
+        if (IsFilenameEmpty(filename))
+        {
+            return Status{StatusCategory::USER, StatusCode::INVALID_ARGUMENT};
+        }
 
-    try
-    {
         const std::filesystem::path targetPath(filename);
 
         const auto dirStatus = EnsureParentDirectory(targetPath);
@@ -290,10 +290,10 @@ auto SaveCalibrationParameters(const char *filename, const CalibrationParameters
             return dirStatus;
         }
 
-        std::ofstream out(targetPath, std::ios::trunc);
+        std::ofstream out{targetPath, std::ios::trunc};
         if (!out.is_open())
         {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+            return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
         }
 
         const auto json = SerializeCalibration(parameters);
@@ -302,58 +302,39 @@ auto SaveCalibrationParameters(const char *filename, const CalibrationParameters
         out.flush();
         if (!out.good())
         {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+            return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
         }
 
-        return Status();
-    }
-    catch (const std::exception &e)
-    {
-        LogError(e.what());
-        return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
-    }
-    catch (...)
-    {
-        return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
-    }
+        return Status{};
+    });
 }
 
 auto LoadCalibrationParameters(const char *filename, CalibrationParameters &parameters) noexcept -> Status
 {
-    if (IsFilenameEmpty(filename))
-    {
-        return Status(StatusCategory::USER, StatusCode::INVALID_ARGUMENT);
-    }
+    return NoThrow([&]() -> Status {
+        if (IsFilenameEmpty(filename))
+        {
+            return Status{StatusCategory::USER, StatusCode::INVALID_ARGUMENT};
+        }
 
-    try
-    {
         std::ifstream in(filename, std::ios::in);
         if (!in.is_open())
         {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+            return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
         }
 
         const auto doc = nlohmann::json::parse(in, nullptr, false);
         if (doc.is_discarded())
         {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+            return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
         }
 
         if (!DeserializeCalibration(doc, parameters))
         {
-            return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+            return Status{StatusCategory::SYSTEM, StatusCode::FAIL};
         }
 
-        return Status();
-    }
-    catch (const std::exception &e)
-    {
-        LogError(e.what());
-        return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
-    }
-    catch (...)
-    {
-        return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
-    }
+        return Status{};
+    });
 }
 } // namespace retinify

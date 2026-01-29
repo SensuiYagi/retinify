@@ -5,6 +5,7 @@
 #include "mat.hpp"
 
 #include "retinify/logging.hpp"
+#include "retinify/nothrow.hpp"
 #include "retinify/paths.hpp"
 
 #include <filesystem>
@@ -54,8 +55,7 @@ class TensorRTLogger : public nvinfer1::ILogger
 auto Session::Initialize(const char *modelPath) noexcept -> Status
 {
 #ifdef BUILD_WITH_TENSORRT
-    try
-    {
+    return NoThrow([&]() -> Status {
         TensorRTLogger logger;
         runtime_.reset(nvinfer1::createInferRuntime(logger));
         if (!runtime_)
@@ -228,17 +228,7 @@ auto Session::Initialize(const char *modelPath) noexcept -> Status
         }
 
         return Status{};
-    }
-    catch (std::exception &ex)
-    {
-        LogError(ex.what());
-        return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
-    }
-    catch (...)
-    {
-        LogFatal("An unknown error occurred.");
-        return Status{StatusCategory::RETINIFY, StatusCode::FAIL};
-    }
+    });
 #else
     (void)modelPath;
     LogError("This function is not available");
