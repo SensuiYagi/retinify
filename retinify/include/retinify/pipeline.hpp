@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "retinify/constraints.hpp"
 #include "retinify/geometry.hpp"
+#include "retinify/nocopymove.hpp"
 #include "retinify/status.hpp"
 
 #include <array>

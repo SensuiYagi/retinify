@@ -6,7 +6,7 @@
 #include "mat.hpp"
 #include "stream.hpp"
 
-#include "retinify/constraints.hpp"
+#include "retinify/nocopymove.hpp"
 #include "retinify/status.hpp"
 
 #include <array>
