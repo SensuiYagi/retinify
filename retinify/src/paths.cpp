@@ -3,6 +3,7 @@
 
 #include "retinify/paths.hpp"
 #include "retinify/logging.hpp"
+#include "retinify/nothrow.hpp"
 #include "retinify/retinifyModels.hpp"
 #include "retinify/version.hpp"
 
@@ -26,12 +27,11 @@ constexpr DirectoryInfo kCacheDirectoryInfo{"XDG_CACHE_HOME", ".cache"};
 constexpr DirectoryInfo kDataDirectoryInfo{"XDG_DATA_HOME", ".local/share"};
 constexpr DirectoryInfo kStateDirectoryInfo{"XDG_STATE_HOME", ".local/state"};
 
-constexpr const char *kRetinifyDirName = "retinify";
+constexpr const char kRetinifyDirName[] = "retinify";
 
-static inline auto GetUserDirectoryPath(const DirectoryInfo &info, std::filesystem::path &path) noexcept -> Status
+inline auto GetUserDirectoryPath(const DirectoryInfo &info, std::filesystem::path &path) noexcept -> Status
 {
-    try
-    {
+    return NoThrow([&]() -> Status {
         std::filesystem::path baseDirectory;
 
         const char *xdgValue = std::getenv(info.environmentVariable);
@@ -73,25 +73,13 @@ static inline auto GetUserDirectoryPath(const DirectoryInfo &info, std::filesyst
 
         path = fullPath;
         return Status{};
-    }
-    catch (const std::exception &ex)
-    {
-        retinify::LogError(ex.what());
-    }
-    catch (...)
-    {
-        retinify::LogError("Unknown exception occurred.");
-    }
-
-    path.clear();
-    return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+    });
 }
 } // namespace
 
 auto HomeDirectoryPath(std::filesystem::path &path) noexcept -> Status
 {
-    try
-    {
+    return NoThrow([&]() -> Status {
         const char *homePath = std::getenv("HOME");
         if (homePath == nullptr || std::strlen(homePath) == 0)
         {
@@ -102,18 +90,7 @@ auto HomeDirectoryPath(std::filesystem::path &path) noexcept -> Status
 
         path = std::filesystem::path{homePath};
         return Status{};
-    }
-    catch (const std::exception &ex)
-    {
-        retinify::LogError(ex.what());
-    }
-    catch (...)
-    {
-        retinify::LogError("Unknown exception occurred.");
-    }
-
-    path.clear();
-    return Status(StatusCategory::SYSTEM, StatusCode::FAIL);
+    });
 }
 
 auto ConfigDirectoryPath(std::filesystem::path &path) noexcept -> Status
