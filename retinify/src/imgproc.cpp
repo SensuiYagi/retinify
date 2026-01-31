@@ -6,9 +6,9 @@
 #include "retinify/logging.hpp"
 
 #ifdef BUILD_WITH_TENSORRT
-#include "cuda/depth.h"
-#include "cuda/occlusion.h"
-#include "cuda/reproject.h"
+#include "cuda/cuda_depth.cuh"
+#include "cuda/cuda_occlusion.cuh"
+#include "cuda/cuda_reproject.cuh"
 #include <npp.h>
 #else
 #endif
