@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025 Sensui Yagi. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "common.h"
-#include "reproject.h"
+#include "cuda_common.cuh"
+#include "cuda_reproject.cuh"
 
 #include <cmath>
 #include <cstddef>

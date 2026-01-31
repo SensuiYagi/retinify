@@ -1,13 +1,13 @@
 set(CMAKE_CUDA_ARCHITECTURES 75 80 86 87 89 90)
 
 file(GLOB SRCS_CUDA
-    common.h
-    depth.cu
-    depth.h
-    occlusion.cu
-    occlusion.h
-    reproject.cu
-    reproject.h
+    cuda_common.cuh
+    cuda_depth.cu
+    cuda_depth.cuh
+    cuda_occlusion.cu
+    cuda_occlusion.cuh
+    cuda_reproject.cu
+    cuda_reproject.cuh
 )
 
 add_library(retinify-cuda STATIC ${SRCS_CUDA})
