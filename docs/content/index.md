@@ -20,6 +20,7 @@ Retinify is open-source, and the source code is publicly available:
 - [Installation](@ref installation)  
 - [Demos](@ref demos)  
 - [Tutorials](@ref tutorials)  
+- [Calibration](@ref calibration)
 - [Python Docs](@ref python)  
 - [C++ Docs](@ref cpp)  
 - [ROS2 Docs](@ref ros2)  

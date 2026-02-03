@@ -197,6 +197,9 @@ pipeline.RetrievePointCloud(pointCloud.ptr<float>(), pointCloud.step[0]);
 - 🔨 [**Tutorials**](https://docs.retinify.ai/tutorials.html)  
   Guided explanations of retinify concepts
 
+- 🎯 [**Calibration**](https://docs.retinify.ai/calibration.html)  
+  Calibration Parameters Specification
+
 - 🐍 [**Python Docs**](https://docs.retinify.ai/python.html)  
   Python API documentation
 
